@@ -1,6 +1,6 @@
 <template>
   <div
-    class="p-6 w-56 mx-auto bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl shadow-lg shadow-cyan-500/10 transition-transform hover:scale-105"
+    class="p-5 w-48 mx-auto bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl shadow-lg shadow-cyan-500/10 transition-transform hover:scale-105 will-change-transform"
   >
     <h2
       class="text-xl font-bold text-gray-200 tracking-tight h-12 flex items-center justify-center text-center"
@@ -10,21 +10,33 @@
 
     <hr class="border-white/15 w-full my-3" />
 
-    <p v-if="sensor.state.temperature !== undefined" class="text-glow">
-      🌡 <span class="text-highlight">{{ formattedTemperature }}</span>
-    </p>
+    <div class="sensor-values">
+      <div v-if="sensor.state.temperature !== undefined" class="sensor-item">
+        <ThermometerIcon class="icon text-red-400" />
+        <span class="text-highlight whitespace-nowrap">{{ formattedTemperature }}</span>
+      </div>
 
-    <p v-if="sensor.state.humidity !== undefined" class="text-glow">
-      💧 <span class="text-highlight">{{ formattedHumidity }}</span>
-    </p>
+      <div v-if="sensor.state.humidity !== undefined" class="sensor-item">
+        <DropletIcon class="icon text-blue-400" />
+        <span class="text-highlight whitespace-nowrap">{{ formattedHumidity }}</span>
+      </div>
 
-    <p class="text-sm text-gray-400 mt-4 text-center">⏱ {{ formattedTime }}</p>
+      <div class="sensor-item">
+        <ClockIcon class="icon text-gray-400" />
+        <span class="text-sm text-gray-400 whitespace-nowrap">{{ formattedTime }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Sensor } from '@/types/Sensor'
+import { Thermometer, Droplet, Clock } from 'lucide-vue-next'
+
+const ThermometerIcon = Thermometer
+const DropletIcon = Droplet
+const ClockIcon = Clock
 
 const props = defineProps<{ sensor: Sensor }>()
 
@@ -42,23 +54,32 @@ const formattedTemperature = computed(() =>
 </script>
 
 <style scoped>
-@reference '@/assets/main.css'
-
-/* Glow-Effekt für Werte */
-.text-glow {
-  @apply text-gray-300 text-lg tracking-wide;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+@reference '@/assets/main.css';
+/* no linebreak after icon */
+.sensor-values {
+  @apply flex flex-col gap-2;
 }
 
-/* Leuchtende Werte für futuristisches Design */
+.sensor-item {
+  @apply flex items-center gap-2 flex-nowrap;
+}
+
+/* Icon-Styling */
+.icon {
+  @apply w-5 h-5 transition-colors duration-200;
+}
+
+/* Glow for values */
 .text-highlight {
-  color: #00e6e6; /* Neon Cyan */
+  color: #00e6e6;
   font-weight: bold;
   text-shadow: 0 0 15px rgba(0, 230, 230, 0.4);
 }
 
-/* Sanfter Hover-Animationseffekt */
-.hover\:scale-105 {
-  transition: transform 0.3s ease-in-out;
+/* fix for disappearing SensorCards */
+.will-change-transform {
+  will-change: transform;
+  z-index: 10;
+  overflow: visible;
 }
 </style>

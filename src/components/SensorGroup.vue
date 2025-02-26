@@ -4,14 +4,14 @@
   >
     <h2 class="text-2xl font-bold text-gray-200 tracking-tight text-center mb-4">{{ title }}</h2>
 
-    <!-- Lade-Status -->
+    <!-- loading -->
     <div v-if="loading" class="text-gray-300 text-center text-lg animate-pulse">
-      🔄 Lade Sensor-Daten...
+      🔄 Loading data...
     </div>
 
-    <div v-else-if="error" class="text-red-400 text-center">⚠️ Fehler: {{ error }}</div>
+    <div v-else-if="error" class="text-red-400 text-center">⚠️ Error: {{ error }}</div>
 
-    <!-- Sensoren horizontal aufreihen -->
+    <!-- list sensors horizontally -->
     <div class="sensor-container">
       <div class="sensor-wrapper">
         <SensorCard v-for="sensor in sensors" :key="sensor.uniqueid" :sensor="sensor" />
@@ -71,15 +71,15 @@ onMounted(fetchSensors)
 .sensor-container {
   display: flex;
   justify-content: start;
-  overflow-x: visible; /* Verhindert das Abschneiden */
+  overflow-x: visible; /* prevent cut off */
   padding: 10px;
 }
 
-/* Wrapper für die Animation */
+/* Wrapper for animation */
 .sensor-wrapper {
   display: flex;
   gap: 16px;
-  perspective: 1000px; /* Fügt 3D-Tiefeneffekt hinzu */
+  perspective: 1000px;
   transform-style: preserve-3d;
 }
 </style>
