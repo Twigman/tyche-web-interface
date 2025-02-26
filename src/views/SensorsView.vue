@@ -1,11 +1,11 @@
 <template>
   <div class="p-8 bg-neutral-800 min-h-screen flex flex-col space-y-8">
     <SensorGroup
-      title="🌡 Temperature (Indoor)"
+      title="Temperature (Indoor)"
       sensorType="temperature"
       :sensors="temperatureSensors"
     />
-    <SensorGroup title="💧 Humidity (Indoor)" sensorType="humidity" :sensors="humiditySensors" />
+    <SensorGroup title="Humidity (Indoor)" sensorType="humidity" :sensors="humiditySensors" />
   </div>
 </template>
 
