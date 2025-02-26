@@ -4,6 +4,9 @@
       Tyche
     </h2>
     <nav class="space-y-4 text-lg">
+      <RouterLink to="/" active-class="active" class="block p-2 rounded hover:bg-gray-700">
+        Dashboard
+      </RouterLink>
       <RouterLink to="/sensors" active-class="active" class="block p-2 rounded hover:bg-gray-700">
         Sensors
       </RouterLink>

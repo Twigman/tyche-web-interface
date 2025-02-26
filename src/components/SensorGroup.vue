@@ -1,16 +1,21 @@
 <template>
   <div
-    class="p-6 bg-neutral-700 rounded-lg inline-block max-w-max border border-white/10 shadow-xl shadow-black/20"
+    class="p-6 bg-white/5 backdrop-blur-xl border border-white/15 rounded-2xl shadow-lg shadow-cyan-500/10 transition-all duration-300 hover:shadow-cyan-400/20"
   >
-    <h2 class="text-2xl font-bold text-white mb-4">{{ title }}</h2>
+    <h2 class="text-2xl font-bold text-gray-200 tracking-tight text-center mb-4">{{ title }}</h2>
 
     <!-- Lade-Status -->
-    <div v-if="loading" class="text-white">🔄 Lade Sensor-Daten...</div>
-    <div v-else-if="error" class="text-red-400">⚠️ Fehler: {{ error }}</div>
+    <div v-if="loading" class="text-gray-300 text-center text-lg animate-pulse">
+      🔄 Lade Sensor-Daten...
+    </div>
+
+    <div v-else-if="error" class="text-red-400 text-center">⚠️ Fehler: {{ error }}</div>
 
     <!-- Sensoren horizontal aufreihen -->
-    <div class="flex gap-4 overflow-x-auto justify-start flex-wrap">
-      <SensorCard v-for="sensor in sensors" :key="sensor.uniqueid" :sensor="sensor" />
+    <div class="sensor-container">
+      <div class="sensor-wrapper">
+        <SensorCard v-for="sensor in sensors" :key="sensor.uniqueid" :sensor="sensor" />
+      </div>
     </div>
   </div>
 </template>
@@ -60,3 +65,21 @@ watch(
 
 onMounted(fetchSensors)
 </script>
+
+<style scoped>
+/* Container für SensorCards */
+.sensor-container {
+  display: flex;
+  justify-content: start;
+  overflow-x: visible; /* Verhindert das Abschneiden */
+  padding: 10px;
+}
+
+/* Wrapper für die Animation */
+.sensor-wrapper {
+  display: flex;
+  gap: 16px;
+  perspective: 1000px; /* Fügt 3D-Tiefeneffekt hinzu */
+  transform-style: preserve-3d;
+}
+</style>
