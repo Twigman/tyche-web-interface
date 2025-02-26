@@ -1,6 +1,9 @@
 # tyche-web-interface
 
 This template should help get you started developing with Vue 3 in Vite.
+## Screenshot (2025-02-26)
+
+![Sensors overview](img/ui_2025-02-26.jpg)
 
 ## Recommended IDE Setup
 
