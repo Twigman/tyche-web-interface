@@ -25,7 +25,6 @@ start_vue.txt
 *.njsproj
 *.sln
 *.sw?
-img/
 
 *.tsbuildinfo
 
