@@ -1,6 +1,6 @@
 <template>
   <div
-    class="p-6 w-57 mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white"
+    class="p-6 w-56 mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white"
   >
     <h2 class="text-xl font-bold text-gray-300 h-12 flex items-center justify-center text-center">
       {{ sensor.name }}

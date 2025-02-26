@@ -1,4 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+/* insert other imports above */
 @import 'tailwindcss';
+
+/* Google Fonts einbinden */
+
+/* Basis-Typografie mit Tailwind erweitern */
+@layer base {
+  body {
+    @apply bg-neutral-900 text-gray-300; /* Dark Mode Standard */
+    font-family: 'Manrope', sans-serif;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: 'Manrope', sans-serif;
+    @apply font-bold text-white;
+  }
+
+  h1 {
+    @apply text-4xl tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl tracking-normal;
+  }
+
+  h3 {
+    @apply text-2xl tracking-wide;
+  }
+
+  a {
+    @apply text-blue-400 hover:text-blue-300 transition-colors;
+  }
+}
 
 #app {
   max-width: 1920px;
