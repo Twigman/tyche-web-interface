@@ -32,24 +32,15 @@
 
 <script setup lang="ts">
 import SensorCard from './SensorCard.vue'
-import { ref, computed, onMounted, watch, watchEffect } from 'vue'
-import axios from 'axios'
-import { TYCHE_API_ENDPOINTS } from '@/config/api'
+import { ref, computed } from 'vue'
 import type { Sensor } from '@/types/Sensor'
 import { Thermometer, Droplet, Lightbulb, ChevronUp } from 'lucide-vue-next'
-import { useStompWebSocket } from '@/composables/useStompWebSocket'
 
-// get data
-const sensors = ref<Sensor[]>([])
-const loading = ref<boolean>(true)
-const error = ref<string | null>(null)
 // State for akkordeon-function
 const isOpen = ref(true)
-// STOMP updates
-const sensorTempertureUpdate = useStompWebSocket()
 
 // Vue Props
-const props = defineProps<{ title: string; sensorType: string }>()
+const props = defineProps<{ title: string; sensorType: string; sensors: Sensor[] }>()
 
 // Icons für different groups
 const groupIcon = computed(() => {
@@ -69,45 +60,7 @@ const toggleOpen = () => {
   isOpen.value = !isOpen.value
 }
 
-// only for initialisiation
-const fetchSensors = async () => {
-  try {
-    if (props.sensorType === 'temperature') {
-      const response = await axios.get<Sensor[]>(TYCHE_API_ENDPOINTS.SENSORS_TEMPERATURE)
-      sensors.value = response.data
-      console.log(`[API] fetchSensors GET ${TYCHE_API_ENDPOINTS.SENSORS_TEMPERATURE}`)
-    } else if (props.sensorType === 'humidity') {
-      const response = await axios.get<Sensor[]>(TYCHE_API_ENDPOINTS.SENSORS_HUMIDITY)
-      sensors.value = response.data
-      console.log(`[API] fetchSensors GET ${TYCHE_API_ENDPOINTS.SENSORS_HUMIDITY}`)
-    }
-  } catch (err: unknown) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.message
-    } else {
-      error.value = 'Unexpected error: ' + String(err)
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-function updateSensorList(sensorUpdate: Sensor | null) {
-  if (!sensorUpdate) return // null
-
-  sensors.value = sensors.value.map((sensor) =>
-    sensor.uniqueid === sensorUpdate.uniqueid ? sensorUpdate : sensor,
-  )
-}
-
-watchEffect(() => {
-  // temperature sensor update
-  if (sensorTempertureUpdate.value) {
-    updateSensorList(sensorTempertureUpdate.value)
-  }
-})
-
-onMounted(fetchSensors)
+//onMounted(fetchSensors)
 </script>
 
 <style scoped>

@@ -12,17 +12,17 @@
 
     <div class="sensor-values">
       <div v-if="sensor.state.temperature !== undefined" class="sensor-item">
-        <ThermometerIcon class="icon text-red-400" />
+        <Thermometer class="icon text-red-400" />
         <span class="text-highlight whitespace-nowrap">{{ formattedTemperature }}</span>
       </div>
 
       <div v-if="sensor.state.humidity !== undefined" class="sensor-item">
-        <DropletIcon class="icon text-blue-400" />
+        <Droplet class="icon text-blue-400" />
         <span class="text-highlight whitespace-nowrap">{{ formattedHumidity }}</span>
       </div>
 
       <div class="sensor-item">
-        <ClockIcon class="icon text-gray-400" />
+        <Clock class="icon text-gray-400" />
         <span class="text-sm text-gray-400 whitespace-nowrap">{{ formattedTime }}</span>
       </div>
     </div>
@@ -33,10 +33,6 @@
 import { computed } from 'vue'
 import type { Sensor } from '@/types/Sensor'
 import { Thermometer, Droplet, Clock } from 'lucide-vue-next'
-
-const ThermometerIcon = Thermometer
-const DropletIcon = Droplet
-const ClockIcon = Clock
 
 const props = defineProps<{ sensor: Sensor }>()
 
