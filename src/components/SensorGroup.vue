@@ -43,14 +43,14 @@ const isOpen = ref(true)
 const props = defineProps<{ title: string; sensorType: string; sensors: Sensor[] }>()
 
 // Icons für different groups
+// all sensors should have the same type
+// choose icon depending on the first sensor type
 const groupIcon = computed(() => {
   switch (props.sensorType) {
     case 'temperature':
       return Thermometer
     case 'humidity':
       return Droplet
-    case 'lights':
-      return Lightbulb
     default:
       return Lightbulb
   }

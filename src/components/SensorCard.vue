@@ -11,14 +11,10 @@
     <hr class="border-white/15 w-full my-3" />
 
     <div class="sensor-values">
-      <div v-if="sensor.state.temperature !== undefined" class="sensor-item">
-        <Thermometer class="icon text-red-400" />
-        <span class="text-highlight whitespace-nowrap">{{ formattedTemperature }}</span>
-      </div>
-
-      <div v-if="sensor.state.humidity !== undefined" class="sensor-item">
-        <Droplet class="icon text-blue-400" />
-        <span class="text-highlight whitespace-nowrap">{{ formattedHumidity }}</span>
+      <!-- generated dynamic values -->
+      <div v-for="(sensorData, index) in sensorProperties" :key="index" class="sensor-item">
+        <component :is="sensorData.icon" class="icon" :class="sensorData.color" />
+        <span class="text-highlight whitespace-nowrap">{{ sensorData.value }}</span>
       </div>
 
       <div class="sensor-item">
@@ -36,17 +32,31 @@ import { Thermometer, Droplet, Clock } from 'lucide-vue-next'
 
 const props = defineProps<{ sensor: Sensor }>()
 
+// Berechnete Sensor-Werte als Array für v-for
+const sensorProperties = computed(() => {
+  return [
+    {
+      key: 'temperature',
+      value:
+        props.sensor.state.temperature !== undefined
+          ? (props.sensor.state.temperature / 100).toFixed(1) + ' °C'
+          : null,
+      icon: Thermometer,
+      color: 'text-red-400',
+    },
+    {
+      key: 'humidity',
+      value:
+        props.sensor.state.humidity !== undefined
+          ? (props.sensor.state.humidity / 100).toFixed(1) + '%'
+          : null,
+      icon: Droplet,
+      color: 'text-blue-400',
+    },
+  ].filter((sensor) => sensor.value !== null) // remove null values
+})
+
 const formattedTime = computed(() => new Date(props.sensor.state.lastupdated).toLocaleTimeString())
-const formattedHumidity = computed(() =>
-  props.sensor.state.humidity !== undefined
-    ? (props.sensor.state.humidity / 100).toFixed(1) + '%'
-    : 'N/A',
-)
-const formattedTemperature = computed(() =>
-  props.sensor.state.temperature !== undefined
-    ? (props.sensor.state.temperature / 100).toFixed(1) + ' °C'
-    : 'N/A',
-)
 </script>
 
 <style scoped>
