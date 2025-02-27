@@ -39,6 +39,15 @@ import type { Sensor } from '@/types/Sensor'
 import { Thermometer, Droplet, Lightbulb, ChevronUp } from 'lucide-vue-next'
 import { useStompWebSocket } from '@/composables/useStompWebSocket'
 
+// get data
+const sensors = ref<Sensor[]>([])
+const loading = ref<boolean>(true)
+const error = ref<string | null>(null)
+// State for akkordeon-function
+const isOpen = ref(true)
+// STOMP updates
+const sensorTempertureUpdate = useStompWebSocket()
+
 // Vue Props
 const props = defineProps<{ title: string; sensorType: string }>()
 
@@ -56,16 +65,9 @@ const groupIcon = computed(() => {
   }
 })
 
-// State for akkordeon-function
-const isOpen = ref(true)
 const toggleOpen = () => {
   isOpen.value = !isOpen.value
 }
-
-// get data
-const sensors = ref<Sensor[]>([])
-const loading = ref<boolean>(true)
-const error = ref<string | null>(null)
 
 // only for initialisiation
 const fetchSensors = async () => {
@@ -90,9 +92,6 @@ const fetchSensors = async () => {
   }
 }
 
-// STOMP update
-const sensorTempertureUpdate = useStompWebSocket()
-
 function updateSensorList(sensorUpdate: Sensor | null) {
   if (!sensorUpdate) return // null
 
@@ -104,18 +103,9 @@ function updateSensorList(sensorUpdate: Sensor | null) {
 watchEffect(() => {
   // temperature sensor update
   if (sensorTempertureUpdate.value) {
-    console.log(`temperature update for: ${sensorTempertureUpdate.value.name}`)
     updateSensorList(sensorTempertureUpdate.value)
   }
 })
-/*
-watch(
-  () => props.sensorType,
-  () => {
-    fetchSensors()
-  },
-  { immediate: true },
-)*/
 
 onMounted(fetchSensors)
 </script>
