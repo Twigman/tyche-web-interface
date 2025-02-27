@@ -32,11 +32,12 @@
 
 <script setup lang="ts">
 import SensorCard from './SensorCard.vue'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, watchEffect } from 'vue'
 import axios from 'axios'
 import { TYCHE_API_ENDPOINTS } from '@/config/api'
 import type { Sensor } from '@/types/Sensor'
 import { Thermometer, Droplet, Lightbulb, ChevronUp } from 'lucide-vue-next'
+import { useStompWebSocket } from '@/composables/useStompWebSocket'
 
 // Vue Props
 const props = defineProps<{ title: string; sensorType: string }>()
@@ -66,35 +67,55 @@ const sensors = ref<Sensor[]>([])
 const loading = ref<boolean>(true)
 const error = ref<string | null>(null)
 
+// only for initialisiation
 const fetchSensors = async () => {
   try {
     if (props.sensorType === 'temperature') {
       const response = await axios.get<Sensor[]>(TYCHE_API_ENDPOINTS.SENSORS_TEMPERATURE)
       sensors.value = response.data
-      console.log(response)
+      console.log(`[API] fetchSensors GET ${TYCHE_API_ENDPOINTS.SENSORS_TEMPERATURE}`)
     } else if (props.sensorType === 'humidity') {
       const response = await axios.get<Sensor[]>(TYCHE_API_ENDPOINTS.SENSORS_HUMIDITY)
       sensors.value = response.data
-      console.log(response)
+      console.log(`[API] fetchSensors GET ${TYCHE_API_ENDPOINTS.SENSORS_HUMIDITY}`)
     }
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       error.value = err.message
     } else {
-      error.value = 'Unerwarteter Fehler: ' + String(err)
+      error.value = 'Unexpected error: ' + String(err)
     }
   } finally {
     loading.value = false
   }
 }
 
+// STOMP update
+const sensorTempertureUpdate = useStompWebSocket()
+
+function updateSensorList(sensorUpdate: Sensor | null) {
+  if (!sensorUpdate) return // null
+
+  sensors.value = sensors.value.map((sensor) =>
+    sensor.uniqueid === sensorUpdate.uniqueid ? sensorUpdate : sensor,
+  )
+}
+
+watchEffect(() => {
+  // temperature sensor update
+  if (sensorTempertureUpdate.value) {
+    console.log(`temperature update for: ${sensorTempertureUpdate.value.name}`)
+    updateSensorList(sensorTempertureUpdate.value)
+  }
+})
+/*
 watch(
   () => props.sensorType,
   () => {
     fetchSensors()
   },
   { immediate: true },
-)
+)*/
 
 onMounted(fetchSensors)
 </script>

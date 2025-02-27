@@ -1,4 +1,14 @@
 export const TYCHE_BASE_URL = import.meta.env.VITE_TYCHE_URL
+export const TYCHE_BASE_URL_WS = import.meta.env.VITE_TYCHE_URL_WS
+
+export const TYCHE_WS_ENDPOINTS = {
+  TEMPERATURE: '/topic/sensors/temperature',
+  HUMIDITY: '/topic/sensors/humidity',
+  PRESENCE: '/topic/sensors/presence',
+  PRESSURE: '/topic/sensors/pressure',
+  LIGHTLEVEL: '/topic/sensors/lightlevel',
+  HUELIGHTS: '/topic/huelights',
+}
 
 export const TYCHE_API_ENDPOINTS = {
   SENSORS_ALL: `${TYCHE_BASE_URL}/api/sensors/all`,

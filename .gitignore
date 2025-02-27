@@ -12,7 +12,10 @@ dist
 dist-ssr
 coverage
 *.local
+
+# custom
 start_vue.txt
+examples/
 
 
 # Editor directories and files
