@@ -13,7 +13,11 @@
     <div class="sensor-values">
       <!-- generated dynamic values -->
       <div v-for="(sensorData, index) in sensorProperties" :key="index" class="sensor-item">
-        <component :is="sensorData.icon" class="icon" :class="sensorData.color" />
+        <component
+          :is="sensorData.icon"
+          class="icon"
+          :class="[sensorData.color, { 'glow-icon': glowEffects[sensorData.key] }]"
+        />
         <span
           class="text-highlight whitespace-nowrap"
           :class="{ 'glow-effect': glowEffects[sensorData.key] }"
@@ -73,18 +77,18 @@ watch(
       const oldSensor = oldProperties.find((old) => old.key === newSensor.key)
 
       if (oldSensor && oldSensor.measurement !== newSensor.measurement) {
-        glowEffects.value[newSensor.key] = false
+        glowEffects.value[newSensor.key] = false // reset
         setTimeout(() => {
           glowEffects.value[newSensor.key] = true
-        }, 10) // small delay
+        }, 10) // delay
 
         setTimeout(() => {
           glowEffects.value[newSensor.key] = false
-        }, 1400) // effect ends after 1.4s
+        }, 1400) // end effect after 1.4s
       }
     })
   },
-  { deep: true }, // detect changes in array
+  { deep: true },
 )
 </script>
 
@@ -111,6 +115,40 @@ watch(
   overflow: visible;
 }
 
+/* smooth glow-effect */
+.glow-effect {
+  animation: glowAnimation 1.4s ease-in-out forwards;
+}
+
+/* glow effect for icon */
+.glow-icon {
+  animation: glowIconAnimation 1.4s ease-in-out forwards;
+}
+
+@keyframes glowIconAnimation {
+  0% {
+    filter: brightness(1.2);
+    transform: scale(1);
+  }
+  25% {
+    filter: brightness(1.45);
+    transform: scale(1.08);
+  }
+  30% {
+    filter: brightness(1.5);
+    transform: scale(1.1);
+  }
+  40% {
+    filter: brightness(1.45);
+    transform: scale(1.08);
+  }
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+}
+
+/* glow effect for text */
 .text-highlight {
   color: #00e6e6;
   font-weight: bold;
@@ -122,17 +160,18 @@ watch(
     opacity 0.3s ease-out;
 }
 
-/* smooth glow-effect */
-.glow-effect {
-  animation: glowAnimation 1.4s ease-in-out forwards;
-}
-
 @keyframes glowAnimation {
   0% {
     text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
     filter: brightness(1.2);
     transform: scale(1);
     opacity: 0.8;
+  }
+  25% {
+    text-shadow: 0 0 15px rgba(0, 255, 255, 1);
+    filter: brightness(1.45);
+    transform: scale(1.08);
+    opacity: 1;
   }
   30% {
     text-shadow: 0 0 15px rgba(0, 255, 255, 1);
@@ -142,8 +181,8 @@ watch(
   }
   40% {
     text-shadow: 0 0 15px rgba(0, 255, 255, 1);
-    filter: brightness(1.5);
-    transform: scale(1.1);
+    filter: brightness(1.45);
+    transform: scale(1.08);
     opacity: 1;
   }
   100% {
