@@ -59,8 +59,6 @@ const groupIcon = computed(() => {
 const toggleOpen = () => {
   isOpen.value = !isOpen.value
 }
-
-//onMounted(fetchSensors)
 </script>
 
 <style scoped>
