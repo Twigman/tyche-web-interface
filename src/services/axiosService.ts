@@ -15,9 +15,9 @@ export async function getData<T>(endpoint: string): Promise<T> {
   }
 }
 
-export async function postData<T>(endpoint: string): Promise<T> {
+export async function postData<T, D>(endpoint: string, data: D): Promise<T> {
   try {
-    const response = await axios.post<T>(endpoint)
+    const response = await axios.post<T>(endpoint, data)
 
     return response.data
   } catch (err: unknown) {

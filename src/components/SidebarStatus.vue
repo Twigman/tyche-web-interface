@@ -55,7 +55,7 @@ import { User } from 'lucide-vue-next'
 import { usePhone } from '@/composables/usePhone'
 import { useAutomation } from '@/composables/useAutomation'
 import { getUpdateInfo } from '@/services/phoneService'
-import { getAutomationProfiles } from '@/services/automationService'
+import { getAutomationProfiles, postAutomationActiveProfile } from '@/services/automationService'
 import type { PhoneInfo } from '@/types/PhoneInfo'
 
 const phoneInfo = ref<PhoneInfo>({ name: 'Phone', inHomeWlan: false })
@@ -86,9 +86,12 @@ const toggleProfileMenu = () => {
   profileMenuOpen.value = !profileMenuOpen.value
 }
 
-const selectProfile = (profile: string) => {
+const selectProfile = async (profile: string) => {
   activeProfileUpdate.activeProfile.value = profile
   profileMenuOpen.value = false
+  // call api
+  const response = await postAutomationActiveProfile(profile.toUpperCase())
+  console.log(response)
 }
 
 // first letter uppercase, other lowercase
