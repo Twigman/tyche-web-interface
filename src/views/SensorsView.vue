@@ -4,6 +4,7 @@
       title="Temperature (Indoor)"
       sensorType="temperature"
       :sensors="sensorsTemperature"
+      :states="states"
     />
     <SensorGroup title="Humidity (Indoor)" sensorType="humidity" :sensors="sensorsHumidity" />
   </div>

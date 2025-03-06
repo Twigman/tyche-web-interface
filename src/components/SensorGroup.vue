@@ -2,6 +2,7 @@
   <div
     class="p-6 bg-white/5 backdrop-blur-xl border border-white/15 rounded-2xl shadow-lg shadow-cyan-500/10 transition-all duration-300 hover:shadow-cyan-400/20"
   >
+    <!-- Header with icon and title -->
     <div class="flex items-center justify-between cursor-pointer select-none" @click="toggleOpen">
       <div class="flex items-center gap-3">
         <component :is="groupIcon" class="icon text-cyan-400" />
@@ -14,17 +15,25 @@
       />
     </div>
 
+    <!-- Horizontal line-->
     <hr
       class="border-white/15 w-full my-3 transition-opacity duration-300"
       :class="{ 'opacity-100': isOpen, 'opacity-50': !isOpen }"
     />
 
-    <!-- SensorCards -->
+    <!-- Body -->
     <Transition name="smooth-slide">
-      <div v-if="isOpen" class="sensor-container">
-        <div class="sensor-wrapper">
+      <div v-if="isOpen" class="flex flex-col gap-6">
+        <!-- SensorCards -->
+        <div class="flex flex-wrap gap-4">
           <SensorCard v-for="sensor in sensors" :key="sensor.uniqueid" :sensor="sensor" />
         </div>
+
+        <!-- Diagram -->
+        <div v-if="!isLoadingDiagramData" class="flex justify-center items-center min-h-[200px]">
+          <TemperatureLineChart :stateDataSets="states" />
+        </div>
+        <div v-else class="loading-spinner">Loading diagram...</div>
       </div>
     </Transition>
   </div>
@@ -32,15 +41,60 @@
 
 <script setup lang="ts">
 import SensorCard from './SensorCard.vue'
-import { ref, computed } from 'vue'
-import type { Sensor } from '@/types/Sensor'
+import TemperatureLineChart from './charts/TemperatureLineChart.vue'
+import { ref, computed, watch } from 'vue'
 import { Thermometer, Droplet, Lightbulb, ChevronUp } from 'lucide-vue-next'
+import { getTemperatureSensorStatesBetweenById } from '@/services/sensorService'
+import type { Sensor, SensorState } from '@/types/Sensor'
 
 // State for akkordeon-function
 const isOpen = ref(true)
+// only current day
+// format: YYYY-MM-DD
+const startDate = new Date().toISOString().split('T')[0]
+const endDate = new Date().toISOString().split('T')[0]
+//const states: Record<string, SensorState[]> = {}
+const states = ref<Record<string, { name: string; data: SensorState[] }>>({})
+const isLoadingDiagramData = ref(true)
 
 // Vue Props
-const props = defineProps<{ title: string; sensorType: string; sensors: Sensor[] }>()
+const props = defineProps<{
+  title: string
+  sensorType: string
+  sensors: Sensor[]
+}>()
+
+const prepareDiagramStates = async () => {
+  if (props.sensorType === 'temperature') {
+    console.log('start requests...')
+    isLoadingDiagramData.value = true
+
+    try {
+      // parallel requests
+      const promises = props.sensors.map(async (sensor) => {
+        const tempStates = await getTemperatureSensorStatesBetweenById(
+          sensor.uniqueid,
+          startDate,
+          endDate,
+        )
+
+        return { sensorId: sensor.uniqueid, sensorName: sensor.name, tempStates }
+      })
+
+      // wait for all Requests
+      const results = await Promise.all(promises)
+
+      // save results
+      results.forEach(({ sensorId, sensorName, tempStates }) => {
+        states.value[sensorId] = { name: sensorName, data: tempStates }
+      })
+    } catch (error) {
+      console.error('Error loading sensor data: ', error)
+    } finally {
+      isLoadingDiagramData.value = false
+    }
+  }
+}
 
 // Icons für different groups
 // all sensors should have the same type
@@ -59,6 +113,19 @@ const groupIcon = computed(() => {
 const toggleOpen = () => {
   isOpen.value = !isOpen.value
 }
+
+// wait for sensors
+watch(
+  () => props.sensors,
+  async (newSensors) => {
+    if (!newSensors || newSensors.length === 0) {
+      console.warn('Waiting for sensor data...')
+    } else {
+      prepareDiagramStates()
+    }
+  },
+  { immediate: true, deep: true },
+)
 </script>
 
 <style scoped>
