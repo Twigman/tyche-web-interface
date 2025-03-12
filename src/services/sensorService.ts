@@ -14,7 +14,7 @@ export async function getPresenceSensors(): Promise<Sensor[]> {
   return getData<Sensor[]>(TYCHE_API_ENDPOINTS.SENSORS_PRESENCE)
 }
 
-export async function getTemperatureSensorStatesBetweenById(
+/*export async function getTemperatureSensorStatesBetweenById(
   id: string,
   startDate: string,
   endDate: string,
@@ -22,4 +22,12 @@ export async function getTemperatureSensorStatesBetweenById(
   return getData<SensorState[]>(
     TYCHE_API_ENDPOINTS.TEMPERATURES_BETWEEN_BY_ID(id, startDate, endDate),
   )
+}*/
+
+export async function getTemperatureSensorStatesLast24h(id: string): Promise<SensorState[]> {
+  return getData<SensorState[]>(TYCHE_API_ENDPOINTS.TEMPERATURES_LAST_24H_BY_ID(id))
+}
+
+export async function getHumiditySensorStatesLast24h(id: string): Promise<SensorState[]> {
+  return getData<SensorState[]>(TYCHE_API_ENDPOINTS.HUMIDITY_LAST_24H_BY_ID(id))
 }

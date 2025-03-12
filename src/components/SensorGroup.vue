@@ -44,15 +44,11 @@ import SensorCard from './SensorCard.vue'
 import TemperatureLineChart from './charts/TemperatureLineChart.vue'
 import { ref, computed, watch } from 'vue'
 import { Thermometer, Droplet, Lightbulb, ChevronUp } from 'lucide-vue-next'
-import { getTemperatureSensorStatesBetweenById } from '@/services/sensorService'
+import { getTemperatureSensorStatesLast24h } from '@/services/sensorService'
 import type { Sensor, SensorState } from '@/types/Sensor'
 
 // State for akkordeon-function
 const isOpen = ref(true)
-// only current day
-// format: YYYY-MM-DD
-const startDate = new Date().toISOString().split('T')[0]
-const endDate = new Date().toISOString().split('T')[0]
 //const states: Record<string, SensorState[]> = {}
 const states = ref<Record<string, { name: string; data: SensorState[] }>>({})
 const isLoadingDiagramData = ref(true)
@@ -64,7 +60,7 @@ const props = defineProps<{
   sensors: Sensor[]
 }>()
 
-const prepareDiagramStates = async () => {
+const initDiagramStates = async () => {
   if (props.sensorType === 'temperature') {
     console.log('start requests...')
     isLoadingDiagramData.value = true
@@ -72,11 +68,7 @@ const prepareDiagramStates = async () => {
     try {
       // parallel requests
       const promises = props.sensors.map(async (sensor) => {
-        const tempStates = await getTemperatureSensorStatesBetweenById(
-          sensor.uniqueid,
-          startDate,
-          endDate,
-        )
+        const tempStates = await getTemperatureSensorStatesLast24h(sensor.uniqueid)
 
         return { sensorId: sensor.uniqueid, sensorName: sensor.name, tempStates }
       })
@@ -94,6 +86,25 @@ const prepareDiagramStates = async () => {
       isLoadingDiagramData.value = false
     }
   }
+}
+
+const updateDiagramStates = (newStates: Sensor[]) => {
+  const currentTime = Date.now()
+  // calc timestamp - 24h in ms
+  const timeLimit = currentTime - 24 * 60 * 60 * 1000
+
+  newStates.forEach((sensor) => {
+    // add new data
+    states.value[sensor.uniqueid].data.push(sensor.state)
+    //delete data older than 24h
+    while (
+      states.value[sensor.uniqueid].data.length > 0 &&
+      new Date(states.value[sensor.uniqueid].data[0].lastupdated).getTime() < timeLimit
+    ) {
+      // remove first element (oldest value)
+      states.value[sensor.uniqueid].data.shift()
+    }
+  })
 }
 
 // Icons für different groups
@@ -121,7 +132,11 @@ watch(
     if (!newSensors || newSensors.length === 0) {
       console.warn('Waiting for sensor data...')
     } else {
-      prepareDiagramStates()
+      if (isLoadingDiagramData.value) {
+        initDiagramStates()
+      } else {
+        updateDiagramStates(newSensors)
+      }
     }
   },
   { immediate: true, deep: true },
