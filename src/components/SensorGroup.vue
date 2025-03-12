@@ -86,7 +86,7 @@ const mapToGeneralState = (sensorState: SensorState): GeneralSensorState => {
     type: sensorState.type,
     sensorId: sensorState.sensorId,
     lastupdated: sensorState.lastupdated,
-    value: sensorState.humidity ?? sensorState.temperature ?? 0,
+    value: (sensorState.humidity ?? sensorState.temperature ?? 0) / 100,
   }
 }
 
