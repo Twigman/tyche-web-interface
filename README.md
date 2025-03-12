@@ -2,9 +2,9 @@
 
 Based on Vue.js 3, Tailwindcss 4 and lucide-vue
 
-## Screenshot (2025-02-26)
+## Screenshot (2025-03-12)
 
-![Sensors overview](img/ui_2025-02-26.jpg)
+![Sensors overview](img/ui_2025-03-12.jpg)
 
 ## Recommended IDE Setup
 
