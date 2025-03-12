@@ -30,11 +30,25 @@
         </div>
 
         <!-- Diagram -->
-        <div v-if="!isLoadingDiagramData" class="flex justify-center items-center min-h-[200px]">
+        <div
+          v-if="!isLoadingDiagramData && sensorType === 'temperature'"
+          class="flex justify-center items-center min-h-[200px]"
+        >
           <SensorLineChart
             :stateDataSets="generalStates"
             yLabel="Temperature"
             unit="°C"
+            :colors="tempLineColors"
+          />
+        </div>
+        <div
+          v-else-if="!isLoadingDiagramData && sensorType === 'humidity'"
+          class="flex justify-center items-center min-h-[200px]"
+        >
+          <SensorLineChart
+            :stateDataSets="generalStates"
+            yLabel="Humidity"
+            unit="%"
             :colors="tempLineColors"
           />
         </div>
