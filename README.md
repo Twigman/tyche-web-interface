@@ -1,6 +1,6 @@
 # tyche-web-interface
 
-Based on Vue.js 3, Tailwindcss 4 and lucide-vue
+Based on Vue.js 3, Tailwindcss 4, chart.js and lucide-vue
 
 ## Screenshot (2025-03-12)
 
