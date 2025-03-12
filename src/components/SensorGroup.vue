@@ -31,7 +31,12 @@
 
         <!-- Diagram -->
         <div v-if="!isLoadingDiagramData" class="flex justify-center items-center min-h-[200px]">
-          <TemperatureLineChart :stateDataSets="states" />
+          <SensorLineChart
+            :stateDataSets="generalStates"
+            yLabel="Temperature"
+            unit="°C"
+            :colors="tempLineColors"
+          />
         </div>
         <div v-else class="loading-spinner">Loading diagram...</div>
       </div>
@@ -41,17 +46,20 @@
 
 <script setup lang="ts">
 import SensorCard from './SensorCard.vue'
-import TemperatureLineChart from './charts/TemperatureLineChart.vue'
+import SensorLineChart from './charts/SensorLineChart.vue'
 import { ref, computed, watch } from 'vue'
 import { Thermometer, Droplet, Lightbulb, ChevronUp } from 'lucide-vue-next'
-import { getTemperatureSensorStatesLast24h } from '@/services/sensorService'
-import type { Sensor, SensorState } from '@/types/Sensor'
+import {
+  getHumiditySensorStatesLast24h,
+  getTemperatureSensorStatesLast24h,
+} from '@/services/sensorService'
+import type { Sensor, SensorState, GeneralSensorState } from '@/types/Sensor'
 
 // State for akkordeon-function
 const isOpen = ref(true)
-//const states: Record<string, SensorState[]> = {}
-const states = ref<Record<string, { name: string; data: SensorState[] }>>({})
+const generalStates = ref<Record<string, { name: string; data: GeneralSensorState[] }>>({})
 const isLoadingDiagramData = ref(true)
+const tempLineColors = ['#22d3ee', '#60a5fa', '#facc15', '#ef4444', '#10b981', '#8b5cf6']
 
 // Vue Props
 const props = defineProps<{
@@ -60,32 +68,68 @@ const props = defineProps<{
   sensors: Sensor[]
 }>()
 
-const initDiagramStates = async () => {
-  if (props.sensorType === 'temperature') {
-    console.log('start requests...')
-    isLoadingDiagramData.value = true
-
-    try {
-      // parallel requests
-      const promises = props.sensors.map(async (sensor) => {
-        const tempStates = await getTemperatureSensorStatesLast24h(sensor.uniqueid)
-
-        return { sensorId: sensor.uniqueid, sensorName: sensor.name, tempStates }
-      })
-
-      // wait for all Requests
-      const results = await Promise.all(promises)
-
-      // save results
-      results.forEach(({ sensorId, sensorName, tempStates }) => {
-        states.value[sensorId] = { name: sensorName, data: tempStates }
-      })
-    } catch (error) {
-      console.error('Error loading sensor data: ', error)
-    } finally {
-      isLoadingDiagramData.value = false
+const mapToGeneralStates = (sensorStates: SensorState[]): GeneralSensorState[] => {
+  const generalStates: GeneralSensorState[] = sensorStates.map((state) => {
+    return {
+      type: state.type,
+      sensorId: state.sensorId,
+      lastupdated: state.lastupdated,
+      value: (state.humidity ?? state.temperature ?? 0) / 100,
     }
+  })
+
+  return generalStates
+}
+
+const mapToGeneralState = (sensorState: SensorState): GeneralSensorState => {
+  return {
+    type: sensorState.type,
+    sensorId: sensorState.sensorId,
+    lastupdated: sensorState.lastupdated,
+    value: sensorState.humidity ?? sensorState.temperature ?? 0,
   }
+}
+
+const initDiagramStates = async () => {
+  console.log('start requests...')
+  isLoadingDiagramData.value = true
+  let f: (arg0: string) => Promise<SensorState[]>
+
+  // choose function
+  switch (props.sensorType) {
+    case 'temperature':
+      f = getTemperatureSensorStatesLast24h
+      break
+    case 'humidity':
+      f = getHumiditySensorStatesLast24h
+      break
+    default:
+      console.warn(
+        'No sensorType set! getTemperatureSensorStatesLast24h() was selected by default!',
+      )
+      f = getTemperatureSensorStatesLast24h
+  }
+
+  try {
+    const promises = props.sensors.map(async (sensor) => {
+      const states = await f(sensor.uniqueid)
+      return { sensorId: sensor.uniqueid, sensorName: sensor.name, states }
+    })
+
+    // wait for all Requests
+    const results = await Promise.all(promises)
+
+    // save results
+    results.forEach(({ sensorId, sensorName, states }) => {
+      //states.value[sensorId] = { name: sensorName, data: tempStates }
+      generalStates.value[sensorId] = { name: sensorName, data: mapToGeneralStates(states) }
+    })
+  } catch (error) {
+    console.error('Error loading sensor data: ', error)
+  } finally {
+    isLoadingDiagramData.value = false
+  }
+  //}
 }
 
 const updateDiagramStates = (newStates: Sensor[]) => {
@@ -95,14 +139,14 @@ const updateDiagramStates = (newStates: Sensor[]) => {
 
   newStates.forEach((sensor) => {
     // add new data
-    states.value[sensor.uniqueid].data.push(sensor.state)
+    generalStates.value[sensor.uniqueid].data.push(mapToGeneralState(sensor.state))
     //delete data older than 24h
     while (
-      states.value[sensor.uniqueid].data.length > 0 &&
-      new Date(states.value[sensor.uniqueid].data[0].lastupdated).getTime() < timeLimit
+      generalStates.value[sensor.uniqueid].data.length > 0 &&
+      new Date(generalStates.value[sensor.uniqueid].data[0].lastupdated).getTime() < timeLimit
     ) {
       // remove first element (oldest value)
-      states.value[sensor.uniqueid].data.shift()
+      generalStates.value[sensor.uniqueid].data.shift()
     }
   })
 }

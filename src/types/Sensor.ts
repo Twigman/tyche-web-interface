@@ -33,3 +33,10 @@ export interface Sensor {
   state: SensorState
   config: SensorConfig
 }
+
+export interface GeneralSensorState {
+  type: string
+  sensorId: string
+  lastupdated: string
+  value: number
+}
