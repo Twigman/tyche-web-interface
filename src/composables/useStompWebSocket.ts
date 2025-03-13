@@ -3,6 +3,7 @@ import { ref, onUnmounted, onMounted } from 'vue'
 import { TYCHE_BASE_URL_WS, TYCHE_WS_ENDPOINTS } from '@/config/tycheApi'
 import type { Sensor } from '@/types/Sensor'
 import type { PhoneInfo } from '@/types/PhoneInfo'
+import { defaultStompWrapper, type StompWrapper } from '@/types/Message'
 
 let instance: ReturnType<typeof createStompWebSocket> | null = null
 
@@ -11,7 +12,7 @@ function createStompWebSocket() {
   const sensorPresenceUpdate = ref<Sensor | null>(null)
   const sensorHumidityUpdate = ref<Sensor | null>(null)
   const phoneInfoUpdate = ref<PhoneInfo | null>(null)
-  const activeProfileUpdate = ref<string | null>(null)
+  const activeProfileUpdate = ref<StompWrapper<string>>(defaultStompWrapper(''))
 
   const client = new Client({
     brokerURL: TYCHE_BASE_URL_WS,
@@ -41,7 +42,9 @@ function createStompWebSocket() {
 
       client.subscribe(TYCHE_WS_ENDPOINTS.ACTIVE_PROFILE, (message) => {
         console.log(`[STOMP] ${TYCHE_WS_ENDPOINTS.ACTIVE_PROFILE} -> update`)
-        activeProfileUpdate.value = JSON.parse(message.body).activeProfile
+
+        const body = JSON.parse(message.body)
+        activeProfileUpdate.value = { module: body.module, data: body.activeProfile }
       })
     },
     //debug: (str) => console.log(str),

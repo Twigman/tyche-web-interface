@@ -14,13 +14,12 @@
 </template>
 
 <script setup lang="ts">
-import { Home, Thermometer, Lightbulb, FileText, Terminal } from 'lucide-vue-next'
+import { Home, Thermometer, Lightbulb, Terminal } from 'lucide-vue-next'
 
 const menuItems = [
   { to: '/', label: 'Dashboard', icon: Home },
   { to: '/sensors', label: 'Sensors', icon: Thermometer },
   { to: '/lights', label: 'Lights', icon: Lightbulb },
-  { to: '/log', label: 'Log', icon: FileText },
   { to: '/console', label: 'Console', icon: Terminal },
 ]
 </script>

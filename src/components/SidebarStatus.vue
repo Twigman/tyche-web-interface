@@ -87,7 +87,7 @@ const toggleProfileMenu = () => {
 }
 
 const selectProfile = async (profile: string) => {
-  activeProfileUpdate.activeProfile.value = profile
+  activeProfileUpdate.activeProfile.value.data = profile
   profileMenuOpen.value = false
   // call api
   const response = await postAutomationActiveProfile(profile.toUpperCase())
@@ -109,8 +109,8 @@ const formattedProfiles = computed(() => {
 
 // used value for profile
 const formattedActiveProfile = computed(() => {
-  if (activeProfileUpdate.activeProfile.value) {
-    return formatProfileEntry(activeProfileUpdate.activeProfile.value)
+  if (activeProfileUpdate.activeProfile.value.data) {
+    return formatProfileEntry(activeProfileUpdate.activeProfile.value.data)
   } else {
     return 'Error'
   }
