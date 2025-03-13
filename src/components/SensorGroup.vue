@@ -49,7 +49,7 @@
             :stateDataSets="generalStates"
             yLabel="Humidity"
             unit="%"
-            :colors="tempLineColors"
+            :colors="humidityLineColors"
           />
         </div>
         <div v-else class="loading-spinner">Loading diagram...</div>
@@ -73,7 +73,8 @@ import type { Sensor, SensorState, GeneralSensorState } from '@/types/Sensor'
 const isOpen = ref(true)
 const generalStates = ref<Record<string, { name: string; data: GeneralSensorState[] }>>({})
 const isLoadingDiagramData = ref(true)
-const tempLineColors = ['#22d3ee', '#60a5fa', '#facc15', '#ef4444', '#10b981', '#8b5cf6']
+const tempLineColors = ['#faae42', '#ff7f50', '#e63946', '#b91c1c', '#8b0000']
+const humidityLineColors = ['#14b8a6', '#0ea5e9', '#2563eb', '#38bdf8', '#22d3ee', '#60a5fa']
 
 // Vue Props
 const props = defineProps<{
