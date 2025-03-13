@@ -1,5 +1,5 @@
 <template>
-  <div class="w-66 h-screen bg-neutral-900 text-white flex flex-col p-4">
+  <div class="w-66 h-screen bg-neutral-900 text-white flex flex-col p-4 fixed top-0 left-0">
     <h2 class="text-xl font-bold text-gray-300 h-18 flex items-center justify-center text-center">
       Tyche
     </h2>

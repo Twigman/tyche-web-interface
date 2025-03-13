@@ -1,10 +1,9 @@
 <template>
-  <div class="p-8 bg-neutral-800 min-h-screen flex flex-col space-y-8">
+  <div class="p-8 bg-neutral-800 h-auto flex flex-col space-y-8">
     <SensorGroup
       title="Temperature (Indoor)"
       sensorType="temperature"
       :sensors="sensorsTemperature"
-      :states="states"
     />
     <SensorGroup title="Humidity (Indoor)" sensorType="humidity" :sensors="sensorsHumidity" />
   </div>
