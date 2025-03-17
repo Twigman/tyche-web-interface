@@ -6,7 +6,7 @@
     <!-- Scrollbare Konsole -->
     <div class="flex-1 p-4 overflow-y-auto" ref="consoleContainer">
       <div
-        v-for="(log, index) in consoleStore.logs"
+        v-for="(log, index) in webConsole.logs"
         :key="index"
         class="flex gap-2 py-1 items-center"
       >
@@ -51,11 +51,12 @@ import { useConsoleStore } from '@/stores/consoleStore'
 import { useExecuter } from '@/composables/useExecuter'
 import { CONSOLE_COMMANDS } from '@/config/consoleCommands'
 
-const consoleStore = useConsoleStore()
+const webConsole = useConsoleStore()
 
 const command = ref('')
 const consoleContainer = ref<HTMLElement | null>(null)
 const inputField = ref<HTMLElement | null>(null)
+let historyIndex = -1
 const executer = useExecuter()
 
 const focusInput = () => {
@@ -88,7 +89,7 @@ const autoCompleteCommand = () => {
           command.value += Object.keys(selectedCommand.params)[0]
         }
       } else if (matchingCommands.length > 1) {
-        consoleStore.print({
+        webConsole.print({
           module: TYCHE_MODULE.COMMAND,
           type: TYCHE_LOG_TYPE.COMMAND,
           message: `Possible commands: ${matchingCommands.join(', ')}`,
@@ -114,7 +115,7 @@ const autoCompleteCommand = () => {
             command.value = baseCommand + ' ' + matchingParams[0]
           }
         } else if (matchingParams.length > 1) {
-          consoleStore.print({
+          webConsole.print({
             module: TYCHE_MODULE.COMMAND,
             type: TYCHE_LOG_TYPE.COMMAND,
             message: `Available parameters: ${matchingParams.join(', ')}`,
@@ -130,7 +131,7 @@ const autoCompleteCommand = () => {
             if (matchingManCommands.length === 1) {
               command.value = baseCommand + ' ' + matchingManCommands[0]
             } else {
-              consoleStore.print({
+              webConsole.print({
                 module: TYCHE_MODULE.COMMAND,
                 type: TYCHE_LOG_TYPE.COMMAND,
                 message: `Possible commands: ${matchingManCommands.join(', ')}`,
@@ -151,18 +152,38 @@ const handleKeydown = (event: KeyboardEvent) => {
   if (event.key === 'Tab') {
     event.preventDefault()
     autoCompleteCommand()
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    const commandHistory = webConsole.getCommandHistory()
+
+    if (historyIndex < commandHistory.length - 1) {
+      historyIndex++
+      // get previous command
+      command.value = commandHistory[historyIndex]
+    }
+  } else if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    const commandHistory = webConsole.getCommandHistory()
+
+    if (historyIndex > 0) {
+      historyIndex--
+      command.value = commandHistory[historyIndex]
+    } else {
+      historyIndex = -1
+      command.value = ''
+    }
   }
 }
 
 const sendCommand = () => {
   if (command.value.trim() === '') return
-  consoleStore.print({
+  webConsole.print({
     module: TYCHE_MODULE.COMMAND,
     type: TYCHE_LOG_TYPE.COMMAND,
     message: `> ${command.value}`,
   })
   executer.submitCommand(command.value)
-
+  historyIndex = -1
   command.value = ''
 
   // Nach unten scrollen

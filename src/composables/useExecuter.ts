@@ -12,6 +12,8 @@ export function useExecuter() {
 
   const submitCommand = (cmd: string) => {
     if (!cmd.trim()) return
+    // add new entry at index 0
+    webConsole.unshiftCommandHistory(cmd)
     executeCommand(cmd)
   }
 
@@ -165,6 +167,13 @@ export function useExecuter() {
         default:
           printParameterNotDefinedErrorMsg(CONSOLE_COMMANDS.spotify.cmd, param)
       }
+    } else {
+      // arg isnt a string
+      webConsole.print({
+        module: TYCHE_MODULE.COMMAND,
+        type: TYCHE_LOG_TYPE.ERROR,
+        message: `Invalid argument type for '${CONSOLE_COMMANDS.spotify.cmd} ${param}'`,
+      })
     }
   }
 

@@ -6,6 +6,7 @@ import MarkdownIt from 'markdown-it'
 export const useConsoleStore = defineStore('console', () => {
   const logs = ref<ConsoleLine[]>([])
   const md = new MarkdownIt({ html: true })
+  const commandHistory: string[] = []
 
   function printMd(log: ConsoleLine) {
     logs.value.push({
@@ -29,5 +30,13 @@ export const useConsoleStore = defineStore('console', () => {
     logs.value = []
   }
 
-  return { logs, print, printMd, clearLogs }
+  const getCommandHistory = (): string[] => {
+    return commandHistory
+  }
+
+  const unshiftCommandHistory = (entry: string) => {
+    commandHistory.unshift(entry)
+  }
+
+  return { logs, print, printMd, clearLogs, getCommandHistory, unshiftCommandHistory }
 })
