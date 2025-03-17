@@ -35,7 +35,14 @@ export const useConsoleStore = defineStore('console', () => {
   }
 
   const unshiftCommandHistory = (entry: string) => {
-    commandHistory.unshift(entry)
+    if (commandHistory.length > 0) {
+      if (commandHistory[0] !== entry) {
+        // don't add the same command two times in a row
+        commandHistory.unshift(entry)
+      }
+    } else {
+      commandHistory.unshift(entry)
+    }
   }
 
   return { logs, print, printMd, clearLogs, getCommandHistory, unshiftCommandHistory }
