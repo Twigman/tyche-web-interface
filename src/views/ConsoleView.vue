@@ -26,6 +26,7 @@
 
     <!-- Eingabefeld für Befehle -->
     <div class="flex items-center gap-2 p-3 border-t border-gray-700">
+      <!--
       <input
         ref="inputField"
         v-model="command"
@@ -34,6 +35,26 @@
         placeholder="Enter command..."
         class="flex-1 bg-gray-800 text-white p-2 rounded-md outline-none"
       />
+    -->
+      <div class="relative w-full">
+        <input
+          ref="inputField"
+          v-model="command"
+          @keypress.enter="sendCommand"
+          type="text"
+          placeholder="Enter command..."
+          class="w-full bg-gray-800 text-white p-2 rounded-md outline-none relative"
+        />
+
+        <!-- 🔹 Suggestion-Text, wird im Hintergrund angezeigt -->
+        <span
+          v-if="suggestion"
+          class="absolute left-2 top-2 text-gray-300"
+          style="pointer-events: none"
+        >
+          {{ command }}<span class="text-gray-500">{{ suggestion }}</span>
+        </span>
+      </div>
 
       <button @click="sendCommand" class="p-2 bg-gray-700 rounded-md hover:bg-gray-600">
         <SendHorizontal class="w-5 h-5 text-white" />
@@ -43,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { SendHorizontal } from 'lucide-vue-next'
 import { TYCHE_MODULE } from '@/config/module'
 import { TYCHE_LOG_TYPE } from '@/config/logTypes'
@@ -54,6 +75,7 @@ import { CONSOLE_COMMANDS } from '@/config/consoleCommands'
 const webConsole = useConsoleStore()
 
 const command = ref('')
+const suggestion = ref('')
 const consoleContainer = ref<HTMLElement | null>(null)
 const inputField = ref<HTMLElement | null>(null)
 let historyIndex = -1
@@ -65,99 +87,136 @@ const focusInput = () => {
   }
 }
 
-const autoCompleteCommand = () => {
+const getCompletion = () => {
   const input = command.value.toLowerCase().trim()
+  if (!input) return { commandSuggestion: '', paramSuggestion: '' }
 
-  if (input) {
+  const parts = input.split(' ')
+  const baseCommand = parts[0]
+  const currentParam = parts[1] || ''
+
+  // find matching commands
+  const matchingCommands = Object.keys(CONSOLE_COMMANDS).filter((cmd) =>
+    cmd.startsWith(baseCommand),
+  )
+
+  if (parts.length === 1) {
+    // only a command is entered
+    if (matchingCommands.length === 1) {
+      const selectedCommand = matchingCommands[0]
+      const params = Object.keys(CONSOLE_COMMANDS[selectedCommand].params)
+
+      // if the command has only one possible parameter, suggest it directly
+      if (params.length === 1) {
+        return {
+          commandSuggestion: selectedCommand.slice(input.length),
+          paramSuggestion: ' ' + params[0],
+        }
+      }
+      return { commandSuggestion: selectedCommand.slice(input.length), paramSuggestion: '' }
+    }
+  } else {
+    // a command and (possibly) a parameter are entered
+    const selectedCommand = CONSOLE_COMMANDS[baseCommand]
+    if (!selectedCommand) return { commandSuggestion: '', paramSuggestion: '' }
+
+    const matchingParams = Object.keys(selectedCommand.params).filter((param) =>
+      param.startsWith(currentParam),
+    )
+
+    if (matchingParams.length === 1) {
+      // if only one parameter matches, suggest it
+      const paramCompletion = selectedCommand.params[matchingParams[0]].requiresValue
+        ? matchingParams[0].slice(currentParam.length) + '='
+        : matchingParams[0].slice(currentParam.length)
+
+      return { commandSuggestion: '', paramSuggestion: paramCompletion }
+    }
+
+    // `man` command → Suggest commands from documentation
+    if (selectedCommand === CONSOLE_COMMANDS.man) {
+      const matchingManCommands = Object.keys(CONSOLE_COMMANDS).filter((cmd) =>
+        cmd.startsWith(currentParam),
+      )
+
+      if (matchingManCommands.length === 1) {
+        return {
+          commandSuggestion: '',
+          paramSuggestion: matchingManCommands[0].slice(currentParam.length),
+        }
+      }
+    }
+  }
+  return { commandSuggestion: '', paramSuggestion: '' }
+}
+
+// function to update the inline suggestion (ghost text)
+const updateSuggestion = () => {
+  const { commandSuggestion, paramSuggestion } = getCompletion()
+  suggestion.value = commandSuggestion + paramSuggestion
+}
+
+// function to apply auto-completion on `Tab` key press
+const autoCompleteCommand = () => {
+  const { commandSuggestion, paramSuggestion } = getCompletion()
+
+  if (commandSuggestion || paramSuggestion) {
+    command.value += commandSuggestion + paramSuggestion
+    suggestion.value = '' // reset suggestion after completion
+  } else {
+    // if there are multiple possible matches, display them in the console
+    const input = command.value.toLowerCase().trim()
     const parts = input.split(' ')
     const baseCommand = parts[0]
-    const currentParameter = parts[1] || ''
+    const currentParam = parts[1] || ''
 
     const matchingCommands = Object.keys(CONSOLE_COMMANDS).filter((cmd) =>
       cmd.startsWith(baseCommand),
     )
 
-    if (parts.length === 1) {
-      if (matchingCommands.length === 1) {
-        // insert command
-        command.value = matchingCommands[0] + ' '
-        // only one parameter?
-        const selectedCommand = CONSOLE_COMMANDS[matchingCommands[0]]
-
-        if (Object.keys(selectedCommand.params).length === 1) {
-          // complete command
-          command.value += Object.keys(selectedCommand.params)[0]
-        }
-      } else if (matchingCommands.length > 1) {
-        webConsole.print({
-          module: TYCHE_MODULE.COMMAND,
-          type: TYCHE_LOG_TYPE.COMMAND,
-          message: `Possible commands: ${matchingCommands.join(', ')}`,
-        })
-      } else {
-        // no command
-      }
+    if (parts.length === 1 && matchingCommands.length > 1) {
+      webConsole.print({
+        module: TYCHE_MODULE.COMMAND,
+        type: TYCHE_LOG_TYPE.COMMAND,
+        message: `Possible commands: ${matchingCommands.join(', ')}`,
+      })
     } else {
-      // command entered
-      // check for possible parameters
       const selectedCommand = CONSOLE_COMMANDS[baseCommand]
-
       if (selectedCommand) {
         const matchingParams = Object.keys(selectedCommand.params).filter((param) =>
-          param.startsWith(currentParameter),
+          param.startsWith(currentParam),
         )
 
-        if (matchingParams.length === 1) {
-          // complete
-          if (selectedCommand.params[matchingParams[0]].requiresValue) {
-            command.value = baseCommand + ' ' + matchingParams[0] + '='
-          } else {
-            command.value = baseCommand + ' ' + matchingParams[0]
-          }
-        } else if (matchingParams.length > 1) {
+        if (matchingParams.length > 1) {
           webConsole.print({
             module: TYCHE_MODULE.COMMAND,
             type: TYCHE_LOG_TYPE.COMMAND,
             message: `Available parameters: ${matchingParams.join(', ')}`,
           })
-        } else {
-          // man page?
-          if (selectedCommand === CONSOLE_COMMANDS.man) {
-            // search matching command
-            const matchingManCommands = Object.keys(CONSOLE_COMMANDS).filter((cmd) =>
-              cmd.startsWith(currentParameter),
-            )
-
-            if (matchingManCommands.length === 1) {
-              command.value = baseCommand + ' ' + matchingManCommands[0]
-            } else {
-              webConsole.print({
-                module: TYCHE_MODULE.COMMAND,
-                type: TYCHE_LOG_TYPE.COMMAND,
-                message: `Possible commands: ${matchingManCommands.join(', ')}`,
-              })
-            }
-          }
         }
-      } else {
-        // no base command
       }
     }
-  } else {
-    // empty input
   }
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (event.key === 'Tab') {
     event.preventDefault()
-    autoCompleteCommand()
+
+    if (suggestion.value) {
+      // if available use suggestion
+      command.value += suggestion.value
+      suggestion.value = ''
+    } else {
+      autoCompleteCommand()
+    }
   } else if (event.key === 'ArrowUp') {
     event.preventDefault()
     const commandHistory = webConsole.getCommandHistory()
 
     if (historyIndex < commandHistory.length - 1) {
       historyIndex++
+      suggestion.value = ''
       // get previous command
       command.value = commandHistory[historyIndex]
     }
@@ -172,6 +231,7 @@ const handleKeydown = (event: KeyboardEvent) => {
       historyIndex = -1
       command.value = ''
     }
+    suggestion.value = ''
   }
 }
 
@@ -193,19 +253,6 @@ const sendCommand = () => {
     }
   })
 }
-
-// Scrollt automatisch zum neuesten Log
-onMounted(() => {
-  focusInput()
-
-  if (consoleContainer.value) {
-    consoleContainer.value.scrollTop = consoleContainer.value.scrollHeight
-  }
-
-  if (inputField.value) {
-    inputField.value.addEventListener('keydown', handleKeydown)
-  }
-})
 
 // Farben für verschiedene Module
 const getModuleColor = (module: string) => {
@@ -253,6 +300,21 @@ const formatTimestamp = (timestamp?: number) => {
 
   return `${day}.${month}.${year} ${time}`
 }
+
+watch(command, updateSuggestion)
+
+// Scrollt automatisch zum neuesten Log
+onMounted(() => {
+  focusInput()
+
+  if (consoleContainer.value) {
+    consoleContainer.value.scrollTop = consoleContainer.value.scrollHeight
+  }
+
+  if (inputField.value) {
+    inputField.value.addEventListener('keydown', handleKeydown)
+  }
+})
 </script>
 
 <style scoped>
