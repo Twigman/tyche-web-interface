@@ -15,7 +15,7 @@
         <div v-else class="loading-spinner"></div>
 
         <span class="text-sm text-gray-300">
-          {{ isChecking ? 'Checking...' : phoneInfo.name }}
+          {{ isChecking ? 'Checking...' : phoneInfo.name || 'Phone' }}
         </span>
       </button>
 
@@ -53,10 +53,11 @@
 import { ref, watch, onMounted, computed } from 'vue'
 import { User } from 'lucide-vue-next'
 import { usePhone } from '@/composables/usePhone'
-import { useAutomation } from '@/composables/useAutomation'
+import { useAutomationStore } from '@/stores/automationStore'
 import { getUpdateInfo } from '@/services/phoneService'
 import { getAutomationProfiles, postAutomationActiveProfile } from '@/services/automationService'
 import type { PhoneInfo } from '@/types/PhoneInfo'
+import { TYCHE_MODULE } from '@/config/module'
 
 const phoneInfo = ref<PhoneInfo>({ name: 'Phone', inHomeWlan: false })
 let profiles: string[] = []
@@ -65,8 +66,9 @@ const profileMenuOpen = ref(false)
 const isChecking = ref(false)
 
 // live-data
+const automationStore = useAutomationStore()
 const phoneInfoUpdate = usePhone()
-const activeProfileUpdate = useAutomation()
+//const activeProfileUpdate = useAutomation()
 
 const onPhoneStatusClick = async () => {
   if (isChecking.value) return // ignore second click
@@ -87,7 +89,8 @@ const toggleProfileMenu = () => {
 }
 
 const selectProfile = async (profile: string) => {
-  activeProfileUpdate.activeProfile.value.data = profile
+  automationStore.activeProfile.data = profile
+  automationStore.activeProfile.module = TYCHE_MODULE.MANUAL
   profileMenuOpen.value = false
   // call api
   const response = await postAutomationActiveProfile(profile.toUpperCase())
@@ -109,8 +112,8 @@ const formattedProfiles = computed(() => {
 
 // used value for profile
 const formattedActiveProfile = computed(() => {
-  if (activeProfileUpdate.activeProfile.value.data) {
-    return formatProfileEntry(activeProfileUpdate.activeProfile.value.data)
+  if (automationStore.activeProfile.data) {
+    return formatProfileEntry(automationStore.activeProfile.data)
   } else {
     return 'Error'
   }

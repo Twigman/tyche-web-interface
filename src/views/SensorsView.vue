@@ -3,15 +3,19 @@
     <SensorGroup
       title="Temperature (Indoor)"
       sensorType="temperature"
-      :sensors="sensorsTemperature"
+      :sensors="sensorStore.sensorsTemperature"
     />
-    <SensorGroup title="Humidity (Indoor)" sensorType="humidity" :sensors="sensorsHumidity" />
+    <SensorGroup
+      title="Humidity (Indoor)"
+      sensorType="humidity"
+      :sensors="sensorStore.sensorsHumidity"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import SensorGroup from '@/components/SensorGroup.vue'
-import { useSensors } from '@/composables/useSensors'
+import { useSensorStore } from '@/stores/sensorStore'
 
-const { sensorsTemperature, sensorsHumidity } = useSensors()
+const sensorStore = useSensorStore()
 </script>

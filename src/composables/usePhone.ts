@@ -1,11 +1,12 @@
 import { ref, watchEffect } from 'vue'
-import { useStompWebSocket } from '@/composables/useStompWebSocket'
+import { useStompStore } from '@/stores/stompStore'
 import { getPhoneInfo } from '@/services/phoneService'
 import type { PhoneInfo } from '@/types/PhoneInfo'
 
 export function usePhone() {
   // reactive lists
   const phoneInfo = ref<PhoneInfo | null>(null)
+  const stompStore = useStompStore()
 
   async function loadPhone() {
     try {
@@ -18,13 +19,10 @@ export function usePhone() {
   // init phone
   loadPhone()
 
-  // WebSocket for live-updates
-  const { phoneInfoUpdate } = useStompWebSocket()
-
   watchEffect(() => {
-    if (phoneInfoUpdate.value) {
+    if (stompStore.phoneInfoUpdate) {
       // not null
-      phoneInfo.value = phoneInfoUpdate.value
+      phoneInfo.value = stompStore.phoneInfoUpdate
     }
   })
 

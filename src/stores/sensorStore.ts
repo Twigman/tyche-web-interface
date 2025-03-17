@@ -1,6 +1,7 @@
-import { ref, watchEffect } from 'vue'
+import { defineStore } from 'pinia'
+import { onMounted, ref, watchEffect } from 'vue'
 import type { Ref } from 'vue'
-import { useStompWebSocket } from '@/composables/useStompWebSocket'
+import { useStompStore } from '@/stores/stompStore'
 import {
   getTemperatureSensors,
   getHumiditySensors,
@@ -8,11 +9,12 @@ import {
 } from '@/services/sensorService'
 import type { Sensor } from '@/types/Sensor'
 
-export function useSensors() {
+export const useSensorStore = defineStore('sensor', () => {
   // reactive lists
   const sensorsTemperature = ref<Sensor[]>([])
   const sensorsHumidity = ref<Sensor[]>([])
   const sensorsPresence = ref<Sensor[]>([])
+  const stompStore = useStompStore()
 
   async function loadSensors() {
     try {
@@ -38,29 +40,24 @@ export function useSensors() {
     }
   }
 
-  // init sensors
-  loadSensors()
-
-  // WebSocket for live-updates
-  const { sensorTemperatureUpdate, sensorHumidityUpdate, sensorPresenceUpdate } =
-    useStompWebSocket()
-
   watchEffect(() => {
-    if (sensorTemperatureUpdate.value) {
+    if (stompStore.sensorTemperatureUpdate) {
       // not null
-      updateSensorList(sensorsTemperature, sensorTemperatureUpdate.value)
+      updateSensorList(sensorsTemperature, stompStore.sensorTemperatureUpdate)
     }
   })
   watchEffect(() => {
-    if (sensorHumidityUpdate.value) {
-      updateSensorList(sensorsHumidity, sensorHumidityUpdate.value)
+    if (stompStore.sensorHumidityUpdate) {
+      updateSensorList(sensorsHumidity, stompStore.sensorHumidityUpdate)
     }
   })
   watchEffect(() => {
-    if (sensorPresenceUpdate.value) {
-      updateSensorList(sensorsPresence, sensorPresenceUpdate.value)
+    if (stompStore.sensorPresenceUpdate) {
+      updateSensorList(sensorsPresence, stompStore.sensorPresenceUpdate)
     }
   })
+
+  onMounted(loadSensors)
 
   return { sensorsTemperature, sensorsHumidity, sensorsPresence }
-}
+})

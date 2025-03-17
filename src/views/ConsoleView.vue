@@ -1,24 +1,33 @@
 <template>
-  <div class="flex flex-col w-full h-full bg-black text-white rounded-lg shadow-md font-mono">
+  <div
+    @click="focusInput"
+    class="flex flex-col w-full h-full bg-black text-white rounded-lg shadow-md font-mono"
+  >
     <!-- Scrollbare Konsole -->
     <div class="flex-1 p-4 overflow-y-auto" ref="consoleContainer">
-      <div v-for="(log, index) in logs" :key="index" class="flex gap-2 py-1 items-center">
+      <div
+        v-for="(log, index) in consoleStore.logs"
+        :key="index"
+        class="flex gap-2 py-1 items-center"
+      >
         <!-- Zeitstempel (Datum + Uhrzeit) -->
         <span class="text-gray-400 text-sm w-40">{{ formatTimestamp(log.timestamp) }}</span>
 
         <!-- Modul (fixe Breite, linksbündig) -->
-        <span :class="getModuleColor(log.module)" class="font-bold w-28 text-left px-2">
+        <span :class="getModuleColor(log.module)" class="font-bold w-28 text-right px-2">
           [{{ log.module }}]
         </span>
 
         <!-- Nachricht -->
-        <span :class="getLogColor(log.type)">{{ log.message }}</span>
+        <!--<span :class="getLogColor(log.type)">{{ log.message }}</span>>-->
+        <div :class="getLogColor(log.type)" class="markdown-output" v-html="log.message"></div>
       </div>
     </div>
 
     <!-- Eingabefeld für Befehle -->
     <div class="flex items-center gap-2 p-3 border-t border-gray-700">
       <input
+        ref="inputField"
         v-model="command"
         @keypress.enter="sendCommand"
         type="text"
@@ -34,62 +43,126 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { SendHorizontal } from 'lucide-vue-next'
-import { useAutomation } from '@/composables/useAutomation'
-import type { ConsoleLine } from '@/types/Message'
 import { TYCHE_MODULE } from '@/config/module'
+import { TYCHE_LOG_TYPE } from '@/config/logTypes'
+import { useConsoleStore } from '@/stores/consoleStore'
+import { useExecuter } from '@/composables/useExecuter'
+import { CONSOLE_COMMANDS } from '@/config/consoleCommands'
 
-const logs = ref<ConsoleLine[]>([])
+const consoleStore = useConsoleStore()
 
-const logDummies: ConsoleLine[] = [
-  {
-    timestamp: Date.now(),
-    module: 'SYSTEM',
-    type: 'info',
-    message: 'Server started successfully.',
-  },
-  { timestamp: Date.now(), module: 'AUTH', type: 'warn', message: 'Invalid login attempt.' },
-  {
-    timestamp: Date.now(),
-    module: 'DATABASE',
-    type: 'error',
-    message: 'Connection lost, retrying...',
-  },
-  {
-    timestamp: Date.now(),
-    module: 'API',
-    type: 'debug',
-    message: 'Fetching new data from endpoint.',
-  },
-]
-
-// Eingabefeld für Befehle
 const command = ref('')
 const consoleContainer = ref<HTMLElement | null>(null)
+const inputField = ref<HTMLElement | null>(null)
+const executer = useExecuter()
 
-const { activeProfile } = useAutomation()
-
-const initConsole = () => {
-  // use dummy values
-  logDummies.forEach((entry) => {
-    addConsoleLine(entry)
-  })
+const focusInput = () => {
+  if (inputField.value) {
+    inputField.value.focus()
+  }
 }
 
-const addConsoleLine = (line: ConsoleLine) => {
-  logs.value.push(line)
+const autoCompleteCommand = () => {
+  const input = command.value.toLowerCase().trim()
+
+  if (input) {
+    const parts = input.split(' ')
+    const baseCommand = parts[0]
+    const currentParameter = parts[1] || ''
+
+    const matchingCommands = Object.keys(CONSOLE_COMMANDS).filter((cmd) =>
+      cmd.startsWith(baseCommand),
+    )
+
+    if (parts.length === 1) {
+      if (matchingCommands.length === 1) {
+        // insert command
+        command.value = matchingCommands[0] + ' '
+        // only one parameter?
+        const selectedCommand = CONSOLE_COMMANDS[matchingCommands[0]]
+
+        if (Object.keys(selectedCommand.params).length === 1) {
+          // complete command
+          command.value += Object.keys(selectedCommand.params)[0]
+        }
+      } else if (matchingCommands.length > 1) {
+        consoleStore.print({
+          module: TYCHE_MODULE.COMMAND,
+          type: TYCHE_LOG_TYPE.COMMAND,
+          message: `Possible commands: ${matchingCommands.join(', ')}`,
+        })
+      } else {
+        // no command
+      }
+    } else {
+      // command entered
+      // check for possible parameters
+      const selectedCommand = CONSOLE_COMMANDS[baseCommand]
+
+      if (selectedCommand) {
+        const matchingParams = Object.keys(selectedCommand.params).filter((param) =>
+          param.startsWith(currentParameter),
+        )
+
+        if (matchingParams.length === 1) {
+          // complete
+          if (selectedCommand.params[matchingParams[0]].requiresValue) {
+            command.value = baseCommand + ' ' + matchingParams[0] + '='
+          } else {
+            command.value = baseCommand + ' ' + matchingParams[0]
+          }
+        } else if (matchingParams.length > 1) {
+          consoleStore.print({
+            module: TYCHE_MODULE.COMMAND,
+            type: TYCHE_LOG_TYPE.COMMAND,
+            message: `Available parameters: ${matchingParams.join(', ')}`,
+          })
+        } else {
+          // man page?
+          if (selectedCommand === CONSOLE_COMMANDS.man) {
+            // search matching command
+            const matchingManCommands = Object.keys(CONSOLE_COMMANDS).filter((cmd) =>
+              cmd.startsWith(currentParameter),
+            )
+
+            if (matchingManCommands.length === 1) {
+              command.value = baseCommand + ' ' + matchingManCommands[0]
+            } else {
+              consoleStore.print({
+                module: TYCHE_MODULE.COMMAND,
+                type: TYCHE_LOG_TYPE.COMMAND,
+                message: `Possible commands: ${matchingManCommands.join(', ')}`,
+              })
+            }
+          }
+        }
+      } else {
+        // no base command
+      }
+    }
+  } else {
+    // empty input
+  }
 }
 
-// Befehl absenden & in Console anzeigen
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Tab') {
+    event.preventDefault()
+    autoCompleteCommand()
+  }
+}
+
 const sendCommand = () => {
   if (command.value.trim() === '') return
-  logs.value.push({
-    timestamp: Date.now(),
-    module: 'COMMAND',
-    type: 'command',
+  consoleStore.print({
+    module: TYCHE_MODULE.COMMAND,
+    type: TYCHE_LOG_TYPE.COMMAND,
     message: `> ${command.value}`,
   })
+  executer.submitCommand(command.value)
+
   command.value = ''
 
   // Nach unten scrollen
@@ -102,10 +175,14 @@ const sendCommand = () => {
 
 // Scrollt automatisch zum neuesten Log
 onMounted(() => {
-  initConsole()
+  focusInput()
 
   if (consoleContainer.value) {
     consoleContainer.value.scrollTop = consoleContainer.value.scrollHeight
+  }
+
+  if (inputField.value) {
+    inputField.value.addEventListener('keydown', handleKeydown)
   }
 })
 
@@ -122,6 +199,7 @@ const getModuleColor = (module: string) => {
     [TYCHE_MODULE.MANUAL]: 'text-purple-400',
     [TYCHE_MODULE.WEB]: 'text-blue-400',
     [TYCHE_MODULE.ZIGBEE]: 'text-orange-400',
+    [TYCHE_MODULE.SPOTIFY]: 'text-[#1DB954]',
   }
   return colors[module] || 'text-gray-300'
 }
@@ -129,17 +207,19 @@ const getModuleColor = (module: string) => {
 // Farben für Log-Typen
 const getLogColor = (type: string) => {
   const colors: Record<string, string> = {
-    info: 'text-blue-400',
-    warn: 'text-yellow-500',
-    error: 'text-red-500',
-    debug: 'text-purple-400',
-    command: 'text-gray-400',
+    [TYCHE_LOG_TYPE.INFO]: 'text-blue-400',
+    [TYCHE_LOG_TYPE.WARN]: 'text-yellow-500',
+    [TYCHE_LOG_TYPE.ERROR]: 'text-red-500',
+    [TYCHE_LOG_TYPE.DEBUG]: 'text-purple-400',
+    [TYCHE_LOG_TYPE.COMMAND]: 'text-white',
   }
   return colors[type] || 'text-white'
 }
 
 // Zeitstempel mit festem `DD.MM.YYYY HH:MM:SS` Format
-const formatTimestamp = (timestamp: number) => {
+const formatTimestamp = (timestamp?: number) => {
+  if (!timestamp) return 'undefined'
+
   const date = new Date(timestamp)
   const day = String(date.getDate()).padStart(2, '0')
   const month = String(date.getMonth() + 1).padStart(2, '0') // Monate sind 0-basiert
@@ -152,15 +232,6 @@ const formatTimestamp = (timestamp: number) => {
 
   return `${day}.${month}.${year} ${time}`
 }
-
-watch(activeProfile.value, (newValue) => {
-  addConsoleLine({
-    timestamp: Date.now(),
-    module: newValue.module,
-    type: 'info',
-    message: `AUTOMATION PROFILE 	\u279C ${newValue.data}`,
-  })
-})
 </script>
 
 <style scoped>
@@ -168,5 +239,9 @@ watch(activeProfile.value, (newValue) => {
 .overflow-y-auto {
   scrollbar-width: thin;
   scrollbar-color: #4b5563 #1f2937;
+}
+
+.markdown-output {
+  white-space: pre-wrap;
 }
 </style>

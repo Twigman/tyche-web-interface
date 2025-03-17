@@ -1,11 +1,11 @@
-import { ref, watch } from 'vue'
-import { useStompWebSocket } from '@/composables/useStompWebSocket'
+import { defineStore } from 'pinia'
+import { onMounted, ref, watch } from 'vue'
+import { useStompStore } from '@/stores/stompStore'
 import { getAutomationActiveProfile } from '@/services/automationService'
 import { defaultStompWrapper, type StompWrapper } from '@/types/Message'
 import { TYCHE_MODULE } from '@/config/module'
 
-export function useAutomation() {
-  // reactive lists
+export const useAutomationStore = defineStore('automation', () => {
   const activeProfile = ref<StompWrapper<string>>(defaultStompWrapper(''))
 
   async function loadAutomation() {
@@ -17,22 +17,22 @@ export function useAutomation() {
     }
   }
 
-  // init automation
-  loadAutomation()
-
   // WebSocket for live-updates
-  const { activeProfileUpdate } = useStompWebSocket()
+  const stompStore = useStompStore()
 
   watch(
-    () => activeProfileUpdate.value,
+    () => stompStore.activeProfileUpdate,
     (newValue) => {
       if (newValue?.module?.trim()) {
         // valid STOMP message
-        activeProfile.value.data = activeProfileUpdate.value.data
-        activeProfile.value.module = activeProfileUpdate.value.module
+        activeProfile.value.data = newValue.data
+        activeProfile.value.module = newValue.module
       }
     },
+    { immediate: true },
   )
 
-  return { activeProfile }
-}
+  onMounted(loadAutomation)
+
+  return { activeProfile, loadAutomation }
+})

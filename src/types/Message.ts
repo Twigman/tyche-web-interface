@@ -1,5 +1,5 @@
 export interface ConsoleLine {
-  timestamp: number
+  timestamp?: number
   module: string
   type: string
   message: string
