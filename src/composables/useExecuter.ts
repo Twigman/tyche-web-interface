@@ -3,8 +3,10 @@ import { TYCHE_LOG_TYPE } from '@/config/logTypes'
 import { TYCHE_MODULE } from '@/config/module'
 import { CONSOLE_COMMANDS } from '@/config/consoleCommands'
 import { useStompStore } from '@/stores/stompStore'
-import { putVolume } from '@/services/spotifyService'
-import type { CommandParam } from '@/types/ConsoleCommand'
+import { putNext, putPause, putPlay, putPrevious, putVolume } from '@/services/spotifyService'
+import { parseCLI } from '@/services/commandParserService'
+import type { CommandHandler, CLIOptionValues } from '@/types/ConsoleCommand'
+import { getTimerList } from '@/services/timerService'
 
 export function useExecuter() {
   const webConsole = useConsoleStore()
@@ -17,51 +19,20 @@ export function useExecuter() {
     executeCommand(cmd)
   }
 
-  /*
-   * connect tyche -> cmds = 'connect', param = 'tyche', args = ''
-   * spotify vol=50 -> 'spotify', param = 'vol', args='50'
-   */
-  function parseCommand(command: string) {
-    const all = command.split(' ')
-    const cmd = all[0]
-    let param = ''
-    let arg = ''
-
-    if (all.length === 2) {
-      // subcommand
-      // get argument
-      if (all[1].includes('=')) {
-        const temp = all[1].split('=')
-
-        if (temp.length === 2) {
-          // parameter has argument
-          param = temp[0]
-          arg = temp[1]
-        }
-      } else {
-        // only parameter
-        // e.g. connect tyche
-        param = all[1]
-      }
-    }
-
-    return { cmd, param, arg }
-  }
-
   function executeCommand(command: string): boolean {
-    const { cmd, param, arg } = parseCommand(command)
+    const argv = command.split(' ')
+    const parsedCommand = parseCLI(argv, CONSOLE_COMMANDS)
 
-    // TODO: Tyche Backend command?
-    if (isValidCommand(cmd)) {
-      commandActions[cmd](param, arg)
-      return true
-    } else {
+    if (parsedCommand === null) {
       webConsole.print({
         module: TYCHE_MODULE.COMMAND,
         type: TYCHE_LOG_TYPE.ERROR,
-        message: `Command '${cmd}' is not defined`,
+        message: `Command '${command}' is not defined`,
       })
       return false
+    } else {
+      commandActions[parsedCommand.command](parsedCommand)
+      return true
     }
   }
 
@@ -140,15 +111,6 @@ export function useExecuter() {
     })
   }
 
-  function isValidCommand(cmd: string): boolean {
-    return Object.values(CONSOLE_COMMANDS).some((command) => command.cmd === cmd)
-  }
-
-  function isInt(str: string) {
-    const num = Number(str)
-    return Number.isInteger(num)
-  }
-
   function printParameterNotDefinedErrorMsg(cmd: string, param: string): void {
     webConsole.print({
       module: TYCHE_MODULE.COMMAND,
@@ -157,43 +119,53 @@ export function useExecuter() {
     })
   }
 
-  function spotify(param: string, arg: string) {
-    if (isInt(arg)) {
-      // number argument passed
+  function spotify(param: string, arg: CLIOptionValues | undefined) {
+    if (CONSOLE_COMMANDS.spotify.subcommands !== undefined) {
       switch (param) {
-        case CONSOLE_COMMANDS.spotify.params.vol.alias:
-          putVolume(Number(arg))
+        case CONSOLE_COMMANDS.spotify.subcommands.vol.name:
+          if (arg !== undefined) {
+            putVolume(Number(arg['value']))
+          }
+          break
+        case CONSOLE_COMMANDS.spotify.subcommands.play.name:
+          putPlay()
+          break
+        case CONSOLE_COMMANDS.spotify.subcommands.pause.name:
+          putPause()
+          break
+        case CONSOLE_COMMANDS.spotify.subcommands.prev.name:
+          putPrevious()
+          break
+        case CONSOLE_COMMANDS.spotify.subcommands.next.name:
+          putNext()
           break
         default:
           printParameterNotDefinedErrorMsg(CONSOLE_COMMANDS.spotify.cmd, param)
       }
-    } else {
-      // arg isnt a string
-      webConsole.print({
-        module: TYCHE_MODULE.COMMAND,
-        type: TYCHE_LOG_TYPE.ERROR,
-        message: `Invalid argument type for '${CONSOLE_COMMANDS.spotify.cmd} ${param}'`,
-      })
     }
   }
 
   function connectCmd(param: string) {
-    switch (param) {
-      case CONSOLE_COMMANDS.connect.params.tyche.alias:
-        stompStore.connect()
-        break
-      default:
-        printParameterNotDefinedErrorMsg(CONSOLE_COMMANDS.connect.cmd, param)
+    if (CONSOLE_COMMANDS.connect.subcommands !== undefined) {
+      switch (param) {
+        case CONSOLE_COMMANDS.connect.subcommands.tyche.name:
+          stompStore.connect()
+          break
+        default:
+          printParameterNotDefinedErrorMsg(CONSOLE_COMMANDS.connect.cmd, param)
+      }
     }
   }
 
   function disconnectCmd(param: string) {
-    switch (param) {
-      case CONSOLE_COMMANDS.disconnect.params.tyche.alias:
-        stompStore.disconnect()
-        break
-      default:
-        printParameterNotDefinedErrorMsg(CONSOLE_COMMANDS.disconnect.cmd, param)
+    if (CONSOLE_COMMANDS.disconnect.subcommands !== undefined) {
+      switch (param) {
+        case CONSOLE_COMMANDS.disconnect.subcommands.tyche.name:
+          stompStore.disconnect()
+          break
+        default:
+          printParameterNotDefinedErrorMsg(CONSOLE_COMMANDS.disconnect.cmd, param)
+      }
     }
   }
 
@@ -214,12 +186,84 @@ export function useExecuter() {
     })
   }
 
-  const commandActions: Record<string, (param: string, arg: string) => void> = {
+  function calc(param: string, args: CLIOptionValues | undefined) {
+    if (CONSOLE_COMMANDS.calc.subcommands !== undefined && args !== undefined) {
+      switch (param) {
+        case CONSOLE_COMMANDS.calc.subcommands.carbs.name:
+          // check args for calculation
+          if (args['per-100g'] && args['amount']) {
+            const res = (Number(args['per-100g']) / 100) * Number(args['amount'])
+            // print result
+            webConsole.print({
+              module: TYCHE_MODULE.COMMAND,
+              type: TYCHE_LOG_TYPE.COMMAND,
+              message: res.toString(),
+            })
+          }
+          break
+        default:
+          printParameterNotDefinedErrorMsg(CONSOLE_COMMANDS.calc.cmd, param)
+      }
+    }
+  }
+
+  async function timer(param: string, args: CLIOptionValues | undefined) {
+    if (CONSOLE_COMMANDS.timer.subcommands !== undefined) {
+      switch (param) {
+        case CONSOLE_COMMANDS.timer.subcommands.list.name:
+          let output: string = ''
+          const timerList = await getTimerList()
+
+          if (timerList.length > 0) {
+            timerList.forEach((timer) => {
+              output += `${timer.id}: ${timer.remainingTime} s\n`
+            })
+          }
+
+          webConsole.printMd({
+            module: TYCHE_MODULE.COMMAND,
+            type: TYCHE_LOG_TYPE.COMMAND,
+            message: output,
+          })
+          break
+        default:
+          printParameterNotDefinedErrorMsg(CONSOLE_COMMANDS.timer.cmd, param)
+      }
+    }
+  }
+
+  const commandActions: Record<string, CommandHandler> = {
     [CONSOLE_COMMANDS.help.cmd]: () => printHelp(),
-    [CONSOLE_COMMANDS.connect.cmd]: (param) => connectCmd(param),
-    [CONSOLE_COMMANDS.disconnect.cmd]: (param) => disconnectCmd(param),
-    [CONSOLE_COMMANDS.man.cmd]: (param) => printManPage(param),
-    [CONSOLE_COMMANDS.spotify.cmd]: (param, arg) => spotify(param, arg),
+
+    [CONSOLE_COMMANDS.connect.cmd]: (parsed) => {
+      if (parsed.subcommand === 'tyche') connectCmd('tyche')
+      else console.warn('Unknown connect target.')
+    },
+
+    [CONSOLE_COMMANDS.disconnect.cmd]: (parsed) => {
+      if (parsed.subcommand === 'tyche') disconnectCmd('tyche')
+      else console.warn('Unknown disconnect target.')
+    },
+
+    [CONSOLE_COMMANDS.man.cmd]: (parsed) => {
+      if (parsed.subcommand) printManPage(parsed.subcommand)
+      else console.warn('Missing command name for manual.')
+    },
+
+    [CONSOLE_COMMANDS.spotify.cmd]: (parsed) => {
+      if (!parsed.subcommand) return console.warn('Missing spotify subcommand.')
+      spotify(parsed.subcommand, parsed.subcommandOptions)
+    },
+
+    [CONSOLE_COMMANDS.calc.cmd]: (parsed) => {
+      if (!parsed.subcommand) return console.warn('Missing calc subcommand.')
+      calc(parsed.subcommand, parsed.subcommandOptions)
+    },
+
+    [CONSOLE_COMMANDS.timer.cmd]: (parsed) => {
+      if (!parsed.subcommand) return console.warn('Missing timer subcommand.')
+      timer(parsed.subcommand, parsed.subcommandOptions)
+    },
   }
 
   return { submitCommand }

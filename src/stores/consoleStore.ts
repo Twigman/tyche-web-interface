@@ -5,7 +5,7 @@ import MarkdownIt from 'markdown-it'
 
 export const useConsoleStore = defineStore('console', () => {
   const logs = ref<ConsoleLine[]>([])
-  const md = new MarkdownIt({ html: true })
+  const md = new MarkdownIt({ html: true, linkify: true, typographer: true })
   const commandHistory: string[] = []
 
   function printMd(log: ConsoleLine) {

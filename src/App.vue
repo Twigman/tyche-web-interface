@@ -1,6 +1,22 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import SidebarNav from './components/SidebarNav.vue'
+/*
+import { useKeyStore } from './composables/useKeyStore'
+import { onMounted } from 'vue'
+
+const keyStore = useKeyStore()
+
+onMounted(async () => {
+  await keyStore.loadKeys()
+
+  if (!keyStore.publicKey) {
+    console.log('No publickey exists. Generating new keys')
+    await keyStore.generateKeys()
+  } else {
+    console.log('keys loaded')
+  }
+})*/
 </script>
 
 <template>

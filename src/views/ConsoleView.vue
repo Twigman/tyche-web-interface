@@ -87,66 +87,145 @@ const focusInput = () => {
   }
 }
 
+/**
+ * Generates command-line auto-completion suggestions based on the current input state.
+ *
+ * The function analyzes the user's partially typed input and attempts to provide intelligent suggestions
+ * for command names, subcommands, or options, depending on the current structure of the input.
+ * It supports multi-level commands (main command → subcommand → options) and handles the following scenarios:
+ *
+ * 1. Typing the main command → suggests the remaining part of the command and the only available subcommand, if applicable.
+ * 2. Typing the subcommand → completes the subcommand and optionally suggests options if `requiresOption` is set.
+ * 3. After a fully typed subcommand (no further input) → suggests required options if applicable.
+ * 4. Typing an option (e.g., `--val`) → completes the flag and appends a space if the option requires a value.
+ *
+ * @returns {{
+ *   commandSuggestion: string,
+ *   paramSuggestion: string
+ * }} An object containing `commandSuggestion` (completion for the current command/subcommand)
+ *     and `paramSuggestion` (completion for an option or parameter).
+ */
 const getCompletion = () => {
-  const input = command.value.toLowerCase().trim()
+  const input = command.value.toLowerCase().trimEnd()
   if (!input) return { commandSuggestion: '', paramSuggestion: '' }
 
-  const parts = input.split(' ')
-  const baseCommand = parts[0]
-  const currentParam = parts[1] || ''
+  const parts = input.split(' ').filter(Boolean)
+  const [cmdName = '', subCmdInput = '', ...rest] = parts
 
-  // find matching commands
-  const matchingCommands = Object.keys(CONSOLE_COMMANDS).filter((cmd) =>
-    cmd.startsWith(baseCommand),
-  )
+  const matchingCmds = Object.keys(CONSOLE_COMMANDS).filter((key) => key.startsWith(cmdName))
 
+  // 🔹 1. Hauptbefehl wird getippt
   if (parts.length === 1) {
-    // only a command is entered
-    if (matchingCommands.length === 1) {
-      const selectedCommand = matchingCommands[0]
-      const params = Object.keys(CONSOLE_COMMANDS[selectedCommand].params)
+    if (matchingCmds.length === 1) {
+      const fullCmd = matchingCmds[0]
+      const fullCommand = CONSOLE_COMMANDS[fullCmd]
+      const subcommands = fullCommand.subcommands || {}
 
-      // if the command has only one possible parameter, suggest it directly
-      if (params.length === 1) {
+      const subcommandKeys = Object.keys(subcommands)
+      if (subcommandKeys.length === 1) {
         return {
-          commandSuggestion: selectedCommand.slice(input.length),
-          paramSuggestion: ' ' + params[0],
+          commandSuggestion: fullCmd.slice(cmdName.length),
+          paramSuggestion: ' ' + subcommandKeys[0],
         }
       }
-      return { commandSuggestion: selectedCommand.slice(input.length), paramSuggestion: '' }
+
+      return {
+        commandSuggestion: fullCmd.slice(cmdName.length),
+        paramSuggestion: '',
+      }
     }
-  } else {
-    // a command and (possibly) a parameter are entered
-    const selectedCommand = CONSOLE_COMMANDS[baseCommand]
-    if (!selectedCommand) return { commandSuggestion: '', paramSuggestion: '' }
+  }
 
-    const matchingParams = Object.keys(selectedCommand.params).filter((param) =>
-      param.startsWith(currentParam),
-    )
+  const cmd = CONSOLE_COMMANDS[cmdName]
+  if (!cmd) return { commandSuggestion: '', paramSuggestion: '' }
 
-    if (matchingParams.length === 1) {
-      // if only one parameter matches, suggest it
-      const paramCompletion = selectedCommand.params[matchingParams[0]].requiresValue
-        ? matchingParams[0].slice(currentParam.length) + '='
-        : matchingParams[0].slice(currentParam.length)
+  const subcommands = cmd.subcommands || {}
 
-      return { commandSuggestion: '', paramSuggestion: paramCompletion }
+  // 🔹 2. Subcommand wird gerade getippt
+  if (parts.length === 2) {
+    const matchingSubs = Object.keys(subcommands).filter((sub) => sub.startsWith(subCmdInput))
+
+    if (matchingSubs.length === 1) {
+      const matchedSub = matchingSubs[0]
+      const sub = subcommands[matchedSub]
+      const opts = sub.options || {}
+      const optKeys = Object.keys(opts)
+
+      let paramSuggestion = ''
+      if ('requiresOption' in sub && sub.requiresOption) {
+        if (optKeys.length === 1) {
+          const onlyOpt = opts[optKeys[0]]
+          paramSuggestion = onlyOpt.alias ? ` -${onlyOpt.alias} ` : ` --${onlyOpt.name} `
+        } else if (optKeys.length > 1) {
+          paramSuggestion = ' --'
+        }
+      }
+
+      return {
+        commandSuggestion: matchedSub.slice(subCmdInput.length),
+        paramSuggestion,
+      }
     }
+  }
 
-    // `man` command → Suggest commands from documentation
-    if (selectedCommand === CONSOLE_COMMANDS.man) {
-      const matchingManCommands = Object.keys(CONSOLE_COMMANDS).filter((cmd) =>
-        cmd.startsWith(currentParam),
-      )
+  // 🔹 3. Subcommand vollständig + nichts danach
+  if (subcommands[subCmdInput] && (rest.length === 0 || (rest.length === 1 && rest[0] === ''))) {
+    const sub = subcommands[subCmdInput]
+    const opts = sub.options || {}
+    const optKeys = Object.keys(opts)
 
-      if (matchingManCommands.length === 1) {
+    if ('requiresOption' in sub && sub.requiresOption) {
+      if (optKeys.length === 1) {
+        const onlyOpt = opts[optKeys[0]]
+        const suggestion = onlyOpt.alias ? ` -${onlyOpt.alias} ` : ` --${onlyOpt.name} `
         return {
           commandSuggestion: '',
-          paramSuggestion: matchingManCommands[0].slice(currentParam.length),
+          paramSuggestion: suggestion,
+        }
+      } else if (optKeys.length > 1) {
+        return {
+          commandSuggestion: '',
+          paramSuggestion: '--',
         }
       }
     }
   }
+
+  // 🔹 4. Option wird getippt
+  const sub = subcommands[subCmdInput]
+  if (!sub) return { commandSuggestion: '', paramSuggestion: '' }
+
+  const token = rest.length > 0 ? rest[rest.length - 1] : ''
+  const isFlag = token.startsWith('--') || token.startsWith('-')
+  const paramKey = token.replace(/^--?/, '')
+
+  const options = sub.options || {}
+
+  const allOptions = Object.entries(options)
+  const matchingOpt = allOptions.find(
+    ([key, opt]) => key.startsWith(paramKey) || opt.alias === paramKey,
+  )
+
+  if (isFlag && matchingOpt) {
+    const [key, opt] = matchingOpt
+    let suggestionPart = ''
+
+    if (token.startsWith('--')) {
+      suggestionPart = key.slice(paramKey.length)
+    } else if (opt.alias && token.startsWith('-')) {
+      suggestionPart = opt.alias.slice(paramKey.length)
+    }
+
+    if (opt.requiresValue) {
+      suggestionPart += ' '
+    }
+
+    return {
+      commandSuggestion: '',
+      paramSuggestion: suggestionPart || '',
+    }
+  }
+
   return { commandSuggestion: '', paramSuggestion: '' }
 }
 
@@ -166,9 +245,10 @@ const autoCompleteCommand = () => {
   } else {
     // if there are multiple possible matches, display them in the console
     const input = command.value.toLowerCase().trim()
-    const parts = input.split(' ')
+    const parts = input.split(' ').filter(Boolean)
     const baseCommand = parts[0]
-    const currentParam = parts[1] || ''
+    const subCommand = parts[1]
+    const currentParam = parts[2] || ''
 
     const matchingCommands = Object.keys(CONSOLE_COMMANDS).filter((cmd) =>
       cmd.startsWith(baseCommand),
@@ -182,16 +262,19 @@ const autoCompleteCommand = () => {
       })
     } else {
       const selectedCommand = CONSOLE_COMMANDS[baseCommand]
-      if (selectedCommand) {
-        const matchingParams = Object.keys(selectedCommand.params).filter((param) =>
-          param.startsWith(currentParam),
+      if (!selectedCommand) return
+
+      const sub = selectedCommand.subcommands?.[subCommand]
+      if (sub && sub.options) {
+        const matchingOptions = Object.keys(sub.options).filter(
+          (opt) => opt.startsWith(currentParam) || sub.options?.[opt].alias === currentParam,
         )
 
-        if (matchingParams.length > 1) {
+        if (matchingOptions.length > 1) {
           webConsole.print({
             module: TYCHE_MODULE.COMMAND,
             type: TYCHE_LOG_TYPE.COMMAND,
-            message: `Available parameters: ${matchingParams.join(', ')}`,
+            message: `Available options: ${matchingOptions.join(', ')}`,
           })
         }
       }

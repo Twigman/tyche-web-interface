@@ -1,14 +1,33 @@
-export interface CommandParam {
-  alias: string
+export interface Option {
+  name: string // z. B. "verbose"
+  alias?: string // z. B. "v"
   requiresValue: boolean
+  valueHint?: 'string' | 'number' | 'boolean'
   description?: string
 }
 
-export interface Command {
-  cmd: string
-  description: string
-  params: Record<string, CommandParam>
-  requiresArgument?: boolean
+export interface SubCommand {
+  name: string // z. B. "carbs"
+  description?: string
+  requiresOption?: boolean
+  options?: Record<string, Option> // z. B. "--per-100g", "--amount"
+  positionalArgs?: string[] // z. B. ['inputFile'], wenn nötig
 }
 
-export type CommandRegistry = Record<string, Command>
+export interface Command {
+  cmd: string // z. B. "calc"
+  description: string
+  globalOptions?: Record<string, Option> // z. B. "--verbose", "--help"
+  subcommands?: Record<string, SubCommand> // z. B. "carbs", "fat", ...
+}
+
+export type ParsedCLI = {
+  command: string
+  globalOptions: CLIOptionValues
+  subcommand?: string
+  subcommandOptions?: CLIOptionValues
+}
+
+export type CommandHandler = (parsed: ParsedCLI) => void
+
+export type CLIOptionValues = Record<string, string | number | boolean>
