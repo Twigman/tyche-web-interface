@@ -17,6 +17,7 @@ coverage
 start_vue.txt
 examples/
 config/
+composables/
 
 
 # Editor directories and files
