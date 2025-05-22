@@ -68,12 +68,27 @@ yarn dev --mode development
 
 ---
 
-## 📸 Screenshots & GIFs *(optional)*
+## 📸 Screenshots
 
-> Suggestions for visuals:
-> - Sensor dashboard view
-> - Command console in use (`help`, `timer`, `spotify`)
-> - Network status / automation mode switch
+### Sensor Dashboard
+![Sensor Dashboard](./img/ui_2025-03-12.jpg)
+
+### CLI Timer and auto profile
+![auto_profile](./img/ui_cli_auto_profile.jpg)
+
+### CLI Phone Integration
+![phone_disconnect](./img/ui_cli_phone_disconnected.jpg)
+![phone_connect_burst](./img/ui_cli_phone_connect_burst.jpg)
+
+### CLI Profile Selection
+![profile_selection](./img/ui_profile_selection.jpg)
+
+### CLI Spotify + Man
+![spotify_command](./img/ui_cli_spotify.jpg)
+![spotify_man](./img/ui_cli_man_spotify.jpg)
+
+### CLI Ghost Commands
+![ghost_command](./img/ui_ghost_text.jpg)
 
 ---
 
