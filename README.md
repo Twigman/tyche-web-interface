@@ -98,8 +98,7 @@ Shows predictive command suggestions while typing.
 ### Spotify Control & Command Documentation
 - Send music control commands through the CLI.
   ![spotify_command](./img/ui_cli_spotify.jpg)
-- View detailed manual via `man spotify`.
-- The screenshot also shows an automatic access token refresh occurring in the background.
+- View detailed example manual for `spotify`.
   ![spotify_man](./img/ui_cli_man_spotify.jpg)
 - Command manuals (`man`) are rendered dynamically from the underlying [command schema](./src/types/ConsoleCommand.ts), such as:
 ```ts
