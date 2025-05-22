@@ -108,7 +108,7 @@ Shows predictive command suggestions while typing.
 - View detailed manual via `man spotify`.
 - The screenshot also shows an automatic access token refresh occurring in the background.
   ![spotify_man](./img/ui_cli_man_spotify.jpg)
-- Generated based on definition:
+- Command manuals (`man`) are rendered dynamically from the underlying command schema, such as:
 ```ts
 spotify: {
   cmd: 'spotify',
