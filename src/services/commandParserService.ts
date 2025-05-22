@@ -67,7 +67,7 @@ export function parseCLI(argv: string[], commands: Record<string, Command>): Par
   while (i < rest.length) {
     const token = rest[i]
 
-    // 🔹 Global Option
+    // Global option
     if (command.globalOptions) {
       const match = matchOption(token, command.globalOptions)
       if (match) {
@@ -84,7 +84,7 @@ export function parseCLI(argv: string[], commands: Record<string, Command>): Par
       }
     }
 
-    // 🔹 Subcommand
+    // Subcommand
     if (!result.subcommand && command.subcommands?.[token]) {
       result.subcommand = token
       subcommand = command.subcommands[token]
@@ -93,7 +93,7 @@ export function parseCLI(argv: string[], commands: Record<string, Command>): Par
       continue
     }
 
-    // 🔹 Subcommand Option
+    // Subcommand option
     if (subcommand?.options) {
       const match = matchOption(token, subcommand.options)
       if (match) {
@@ -110,9 +110,21 @@ export function parseCLI(argv: string[], commands: Record<string, Command>): Par
       }
     }
 
-    // 🔸 Unrecognized input
+    // Unrecognized input
     console.warn(`Unrecognized token: "${token}"`)
     i += 1
+  }
+
+  // 🔹 Handle command-level positionalArgs (if no subcommand matched)
+  if (!result.subcommand) {
+    const rawArgs = rest
+
+    if (command.cmd === 'man') {
+      // Sonderbehandlung: 'man' darf immer ein Argument haben
+      result.positionalArgs = rawArgs
+    } else if (command.positionalArgs) {
+      result.positionalArgs = rawArgs.slice(0, command.positionalArgs.length)
+    }
   }
 
   return result

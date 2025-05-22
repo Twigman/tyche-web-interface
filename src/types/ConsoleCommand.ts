@@ -19,6 +19,7 @@ export interface Command {
   description: string
   globalOptions?: Record<string, Option> // z. B. "--verbose", "--help"
   subcommands?: Record<string, SubCommand> // z. B. "carbs", "fat", ...
+  positionalArgs?: string[]
 }
 
 export type ParsedCLI = {
@@ -26,6 +27,7 @@ export type ParsedCLI = {
   globalOptions: CLIOptionValues
   subcommand?: string
   subcommandOptions?: CLIOptionValues
+  positionalArgs?: string[]
 }
 
 export type CommandHandler = (parsed: ParsedCLI) => void

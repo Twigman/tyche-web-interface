@@ -58,7 +58,7 @@ export async function postData<T, D>(endpoint: string, data: D): Promise<T> {
     return response.data
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
-      console.log(`[API] Error calling ${endpoint}: ${err.message}`)
+      console.log(`[API] Error calling ${endpoint}: ${err.message} (${err.toJSON})`)
     } else {
       console.log(`[API] Unexpected error: ${String(err)}`)
     }
