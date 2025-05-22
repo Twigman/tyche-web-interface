@@ -22,7 +22,7 @@ A modular web frontend for monitoring and controlling an automation system. It f
 Commands follow a general structure similar to Unix-style CLI:
 
 ```
-command [subcommand] [--option <value>] [--flag] [argument1] [argument2] ...
+command [subcommand] [--option <value>] [--flag] [argument] ...
 ```
 
 ### Example:
