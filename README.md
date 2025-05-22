@@ -71,23 +71,41 @@ yarn dev --mode development
 ## 📸 Screenshots
 
 ### Sensor Dashboard
+A real-time overview of all connected sensors with chart visualizations.
 ![Sensor Dashboard](./img/ui_2025-03-12.jpg)
 
-### CLI Timer and auto profile
+---
+
+### Timer Command + Auto Profile Switching
+Demonstrates CLI usage to list timers and system profile automation.
 ![auto_profile](./img/ui_cli_auto_profile.jpg)
 
-### CLI Phone Integration
-![phone_disconnect](./img/ui_cli_phone_disconnected.jpg)
-![phone_connect_burst](./img/ui_cli_phone_connect_burst.jpg)
+---
 
-### CLI Profile Selection
+### Phone Connectivity Integration
+- When phone disconnects:
+  ![phone_disconnect](./img/ui_cli_phone_disconnected.jpg)
+- When phone reconnects (after detected movement in hallway):
+  ![phone_connect_burst](./img/ui_cli_phone_connect_burst.jpg)
+
+---
+
+### Profile Selection
+Dropdown for manual switching of the profile 
 ![profile_selection](./img/ui_profile_selection.jpg)
 
-### CLI Spotify + Man
-![spotify_command](./img/ui_cli_spotify.jpg)
-![spotify_man](./img/ui_cli_man_spotify.jpg)
+---
+
+### Spotify Control & Command Documentation
+- Send music control commands through the CLI.
+  ![spotify_command](./img/ui_cli_spotify.jpg)
+- View detailed manual via `man spotify`.
+  ![spotify_man](./img/ui_cli_man_spotify.jpg)
+
+---
 
 ### CLI Ghost Commands
+Shows predictive command input while typing.
 ![ghost_command](./img/ui_ghost_text.jpg)
 
 ---
