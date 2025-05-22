@@ -40,7 +40,7 @@ connect      → Establish connection to backend
 disconnect   → Terminate connection
 help         → Display general help overview
 man          → Show manual for a specific command
-spotify      → Control music playback
+spotify      → Control music playback (for testing purposes)
 timer        → Start, stop, and manage timers
 ```
 
