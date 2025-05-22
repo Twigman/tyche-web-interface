@@ -2,10 +2,9 @@
 
 A modular web frontend for monitoring and controlling an automation system. It features both a real-time dashboard and an interactive terminal-like console with a custom command parser.
 
-> ⚠️ **Note:** This project is not fully runnable out of the box.
-> Configuration files (`/config`) and internal composables (`/composables`) are intentionally excluded.
-> In addition, the backend is not publicly available and serves demonstration purposes only.
-> To understand the structure or functionality, please refer to the provided code, screenshots, and documentation.
+> ⚠️ **Note:** This frontend is not runnable as-is. Configuration files (`/config`) and internal composables (`/composables`) are intentionally excluded from this repository.
+> While the [Tyche Backend](https://github.com/Twigman/tyche) is public, it is also not fully operational without private setup.  
+> Both repositories are intended for demonstration and review purposes.
 
 ## 🔧 Features
 
