@@ -137,12 +137,6 @@ spotify: {
 
 ---
 
-### CLI Ghost Commands
-Shows predictive command suggestions while typing.
-![ghost_command](./img/ui_ghost_text.jpg)
-
----
-
 ## 🔗 Related Repositories
 
 - [Tyche Backend](https://github.com/Twigman/tyche)
