@@ -15,6 +15,7 @@ A modular web frontend for monitoring and controlling an automation system. It f
 - Color-coded modules and log levels for better readability
 - Communication with backend via REST or WebSocket
 - Extensible command parser with options, subcommands, and arguments
+- All data is requested from backend (e.g. available automation profiles)
 
 ## 💡 Example Command Usage
 
@@ -40,9 +41,8 @@ connect      → Establish connection to backend
 disconnect   → Terminate connection
 help         → Display general help overview
 man          → Show manual for a specific command
-spotify      → Control music playback
+spotify      → Control music playback (for testing purposes)
 timer        → Start, stop, and manage timers
-calc         → Perform calculations (e.g. nutrition data)
 ```
 
 ---
@@ -68,12 +68,72 @@ yarn dev --mode development
 
 ---
 
-## 📸 Screenshots & GIFs *(optional)*
+## 📸 Screenshots
 
-> Suggestions for visuals:
-> - Sensor dashboard view
-> - Command console in use (`help`, `timer`, `spotify`)
-> - Network status / automation mode switch
+### Sensor Dashboard
+A real-time overview of all connected sensors with chart visualizations.
+![Sensor Dashboard](./img/ui_2025-03-12.jpg)
+
+---
+
+### Timer Command + Auto Profile Switching
+Demonstrates CLI usage to list timers and automatically switch profiles based on timed events.
+![auto_profile](./img/ui_cli_auto_profile.jpg)
+
+---
+
+### Phone Connectivity Integration
+- When phone disconnects:
+  ![phone_disconnect](./img/ui_cli_phone_disconnected.jpg)
+- When phone reconnects (triggered by hallway motion detection):
+  ![phone_connect_burst](./img/ui_cli_phone_connect_burst.jpg)
+
+---
+
+### Profile Selection
+Manual profile switching via dropdown menu.
+![profile_selection](./img/ui_profile_selection.jpg)
+
+---
+
+### CLI Ghost Commands
+Shows predictive command suggestions while typing.
+![ghost_command](./img/ui_ghost_text.jpg)
+
+---
+
+### Spotify Control & Command Documentation
+- Send music control commands through the CLI.
+  ![spotify_command](./img/ui_cli_spotify.jpg)
+- View detailed manual via `man spotify`.
+  ![spotify_man](./img/ui_cli_man_spotify.jpg)
+- Generated based on definition:
+```ts
+spotify: {
+  cmd: 'spotify',
+  description: 'Controls Spotify devices',
+  subcommands: {
+    play: { name: 'play', description: 'Starts playback' },
+    pause: { name: 'pause', description: 'Pauses playback' },
+    next: { name: 'next', description: 'Next track' },
+    prev: { name: 'prev', description: 'Previous track' },
+    vol: {
+      name: 'vol',
+      description: 'Sets the volume',
+      requiresOption: true,
+      options: {
+        value: {
+          name: 'value',
+          alias: 'v',
+          requiresValue: true,
+          valueHint: 'number',
+          description: 'Volume from 0 to 100',
+        },
+      },
+    },
+  },
+},
+```
 
 ---
 
