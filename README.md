@@ -85,8 +85,3 @@ npm run dev
 
 The Tyche Web Interface is designed to provide both visual clarity and advanced control for a smart environment. The combination of modern reactive UI and a structured CLI-style interface gives users full flexibility to automate and manage their space efficiently.
 
----
-
-## 📄 License
-
-MIT – Free for personal and commercial use.
