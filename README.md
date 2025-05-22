@@ -15,6 +15,7 @@ A modular web frontend for monitoring and controlling an automation system. It f
 - Color-coded modules and log levels for better readability
 - Communication with backend via REST or WebSocket
 - Extensible command parser with options, subcommands, and arguments
+- All data is requested from backend (e.g. available automation profiles)
 
 ## 💡 Example Command Usage
 
@@ -95,11 +96,44 @@ Manual profile switching via dropdown menu.
 
 ---
 
+### CLI Ghost Commands
+Shows predictive command suggestions while typing.
+![ghost_command](./img/ui_ghost_text.jpg)
+
+---
+
 ### Spotify Control & Command Documentation
 - Send music control commands through the CLI.
   ![spotify_command](./img/ui_cli_spotify.jpg)
 - View detailed manual via `man spotify`.
   ![spotify_man](./img/ui_cli_man_spotify.jpg)
+- Generated based on definition:
+```ts
+spotify: {
+  cmd: 'spotify',
+  description: 'Controls Spotify devices',
+  subcommands: {
+    play: { name: 'play', description: 'Starts playback' },
+    pause: { name: 'pause', description: 'Pauses playback' },
+    next: { name: 'next', description: 'Next track' },
+    prev: { name: 'prev', description: 'Previous track' },
+    vol: {
+      name: 'vol',
+      description: 'Sets the volume',
+      requiresOption: true,
+      options: {
+        value: {
+          name: 'value',
+          alias: 'v',
+          requiresValue: true,
+          valueHint: 'number',
+          description: 'Volume from 0 to 100',
+        },
+      },
+    },
+  },
+},
+```
 
 ---
 
