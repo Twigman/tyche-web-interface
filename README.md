@@ -15,7 +15,7 @@ A modular web frontend for monitoring and controlling an automation system. It f
 - Color-coded modules and log levels for better readability
 - Communication with backend via REST or WebSocket
 - Extensible command parser with options, subcommands, and arguments
-- All data is requested from backend (e.g. available automation profiles)
+- All data (e.g. available automation profiles and sensors) is retrieved from the backend.
 
 ## 💡 Example Command Usage
 
