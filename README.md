@@ -61,17 +61,6 @@ timer        → Start, stop, and manage timers
 
 ---
 
-## 🚀 Getting Started
-
-```bash
-git clone https://github.com/twigman/tyche-web-interface
-cd tyche-web-interface
-yarn install
-yarn dev --mode development
-```
-
----
-
 ## 📸 Screenshots
 
 ### Sensor Dashboard
