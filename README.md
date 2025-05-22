@@ -42,7 +42,6 @@ help         → Display general help overview
 man          → Show manual for a specific command
 spotify      → Control music playback
 timer        → Start, stop, and manage timers
-calc         → Perform calculations (e.g. nutrition data)
 ```
 
 ---
