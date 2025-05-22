@@ -1,49 +1,92 @@
-# tyche-web-interface
+# Tyche Web Interface
 
-Based on Vue.js 3, Tailwindcss 4, chart.js and lucide-vue
+A modular web frontend for monitoring and controlling an automation system. It features both a real-time dashboard and an interactive terminal-like console with a custom command parser.
 
-## Screenshot (2025-03-12)
+## 🔧 Features
 
-![Sensors overview](img/ui_2025-03-12.jpg)
+- Real-time visualization of sensor data
+- Display of mobile device network (Wi-Fi) connection status
+- Automation mode control (`Home`, `Away`, `Cooking`, etc.)
+- Interactive console with structured command syntax
+- Command suggestions (ghost commands) as you type
+- Auto-completion with `TAB`
+- Command history navigation using arrow keys
+- Communication with backend via REST or WebSocket
+- Extensible command parser with options, subcommands, and arguments
 
-## Recommended IDE Setup
+## 💡 Example Command Usage
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Commands follow a general structure similar to Unix-style CLI:
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-yarn
+```
+command [subcommand] [--option <value>] [--flag] [argument1] [argument2] ...
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
-yarn dev
+### Example:
+```bash
+timer start --duration 30m --label "pasta"
 ```
 
-### Type-Check, Compile and Minify for Production
+> Starts a 30-minute timer labeled “pasta”.
 
-```sh
-yarn build
+---
+
+## 📦 Supported Commands
+
+```
+connect      → Establish connection to backend
+disconnect   → Terminate connection
+help         → Display general help overview
+man          → Show manual for a specific command
+spotify      → Control music playback
+timer        → Start, stop, and manage timers
+calc         → Perform calculations (e.g. nutrition data)
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+---
 
-```sh
-yarn test:unit
+## 🛠️ Technologies Used
+
+- [Vue.js 3](https://vuejs.org/)
+- [Tailwind CSS 4](https://tailwindcss.com/)
+- [Chart.js](https://www.chartjs.org/)
+- [Lucide-Vue](https://lucide.dev/icons)
+- TypeScript
+
+---
+
+## 🚀 Getting Started
+
+```bash
+git clone https://github.com/Twigman/tyche-web-interface
+cd tyche-web-interface
+npm install
+npm run dev
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+---
 
-```sh
-yarn lint
-```
+## 📸 Screenshots & GIFs *(optional)*
+
+> Suggestions for visuals:
+> - Sensor dashboard view
+> - Command console in use (`help`, `timer`, `spotify`)
+> - Network status / automation mode switch
+
+---
+
+## 🔗 Related Repositories
+
+- [Tyche Backend](https://github.com/Twigman/tyche)
+
+---
+
+## 🙋 Motivation
+
+The Tyche Web Interface is designed to provide both visual clarity and advanced control for a smart environment. The combination of modern reactive UI and a structured CLI-style interface gives users full flexibility to automate and manage their space efficiently.
+
+---
+
+## 📄 License
+
+MIT – Free for personal and commercial use.
