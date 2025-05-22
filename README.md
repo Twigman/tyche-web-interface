@@ -11,6 +11,8 @@ A modular web frontend for monitoring and controlling an automation system. It f
 - Command suggestions (ghost commands) as you type
 - Auto-completion with `TAB`
 - Command history navigation using arrow keys
+- Rich console output with **Markdown formatting**
+- Color-coded modules and log levels for better readability
 - Communication with backend via REST or WebSocket
 - Extensible command parser with options, subcommands, and arguments
 
@@ -58,10 +60,10 @@ calc         → Perform calculations (e.g. nutrition data)
 ## 🚀 Getting Started
 
 ```bash
-git clone https://github.com/Twigman/tyche-web-interface
+git clone https://github.com/twigman/tyche-web-interface
 cd tyche-web-interface
-npm install
-npm run dev
+yarn install
+yarn dev --mode development
 ```
 
 ---
@@ -78,10 +80,4 @@ npm run dev
 ## 🔗 Related Repositories
 
 - [Tyche Backend](https://github.com/Twigman/tyche)
-
----
-
-## 🙋 Motivation
-
-The Tyche Web Interface is designed to provide both visual clarity and advanced control for a smart environment. The combination of modern reactive UI and a structured CLI-style interface gives users full flexibility to automate and manage their space efficiently.
 
