@@ -2,6 +2,11 @@
 
 A modular web frontend for monitoring and controlling an automation system. It features both a real-time dashboard and an interactive terminal-like console with a custom command parser.
 
+> ⚠️ **Note:** This project is not fully runnable out of the box.
+> Configuration files (`/config`) and internal composables (`/composables`) are intentionally excluded.
+> In addition, the backend is not publicly available and serves demonstration purposes only.
+> To understand the structure or functionality, please refer to the provided code, screenshots, and documentation.
+
 ## 🔧 Features
 
 - Real-time visualization of sensor data
