@@ -77,7 +77,7 @@ A real-time overview of all connected sensors with chart visualizations.
 ---
 
 ### Timer Command + Auto Profile Switching
-Demonstrates CLI usage to list timers and system profile automation.
+Demonstrates CLI usage to list timers and automatically switch profiles based on timed events.
 ![auto_profile](./img/ui_cli_auto_profile.jpg)
 
 ---
@@ -85,13 +85,13 @@ Demonstrates CLI usage to list timers and system profile automation.
 ### Phone Connectivity Integration
 - When phone disconnects:
   ![phone_disconnect](./img/ui_cli_phone_disconnected.jpg)
-- When phone reconnects (after detected movement in hallway):
+- When phone reconnects (triggered by hallway motion detection):
   ![phone_connect_burst](./img/ui_cli_phone_connect_burst.jpg)
 
 ---
 
 ### Profile Selection
-Dropdown for manual switching of the profile 
+Manual profile switching via dropdown menu.
 ![profile_selection](./img/ui_profile_selection.jpg)
 
 ---
@@ -105,7 +105,7 @@ Dropdown for manual switching of the profile
 ---
 
 ### CLI Ghost Commands
-Shows predictive command input while typing.
+Shows predictive command suggestions while typing.
 ![ghost_command](./img/ui_ghost_text.jpg)
 
 ---
