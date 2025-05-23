@@ -4,7 +4,7 @@ A modular Vue 3 frontend for real-time monitoring and control of the Tyche autom
 Features a dynamic sensor dashboard and an interactive CLI-style console with predictive commands and rich output formatting.
 
 > ⚠️ Note: This project is intended as a frontend showcase and is not directly runnable.
-> Configuration files and core composables have been excluded for privacy.
+> Configuration files have been excluded for privacy.
 > The corresponding [Tyche backend](https://github.com/Twigman/tyche) is also only partially configured.
 > Both repositories are designed for demonstration and review purposes.
 
