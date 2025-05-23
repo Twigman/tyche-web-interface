@@ -1,10 +1,12 @@
 # Tyche Web Interface
 
-A modular web frontend for monitoring and controlling an automation system. It features both a real-time dashboard and an interactive terminal-like console with a custom command parser.
+A modular Vue 3 frontend for real-time monitoring and control of the Tyche automation backend.
+Features a dynamic sensor dashboard and an interactive CLI-style console with predictive commands and rich output formatting.
 
-> ⚠️ **Note:** This frontend is not runnable as-is. Configuration files (`/config`) and internal composables (`/composables`) are intentionally excluded from this repository.
-> While the [Tyche Backend](https://github.com/Twigman/tyche) is public, it is also not fully operational without private setup.  
-> Both repositories are intended for demonstration and review purposes.
+> ⚠️ Note: This project is intended as a frontend showcase and is not directly runnable.
+> Configuration files and core composables have been excluded for privacy.
+> The corresponding [Tyche backend](https://github.com/Twigman/tyche) is also only partially configured.
+> Both repositories are designed for demonstration and review purposes.
 
 ## 🔧 Features
 
@@ -40,14 +42,14 @@ timer start --duration 30m --label "pasta"
 
 ## 📦 Supported Commands
 
-```
-connect      → Establish connection to backend
-disconnect   → Terminate connection
-help         → Display general help overview
-man          → Show manual for a specific command
-spotify      → Control music playback (for testing purposes)
-timer        → Start, stop, and manage timers
-```
+| Command     | Description                            |
+|-------------|----------------------------------------|
+| `connect`   | Establish connection to backend        |
+| `disconnect`| Terminate connection                   |
+| `help`      | Display general help overview          |
+| `man`       | Show manual for a specific command     |
+| `spotify`   | Control music playback (for testing)   |
+| `timer`     | Start, stop, and manage timers         |
 
 ---
 
@@ -58,6 +60,7 @@ timer        → Start, stop, and manage timers
 - [Chart.js](https://www.chartjs.org/)
 - [Lucide-Vue](https://lucide.dev/icons)
 - TypeScript
+- WebSocket
 
 ---
 
